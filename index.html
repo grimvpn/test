@@ -3,391 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ХАКЕРСКАЯ КОНСОЛЬ v.31337 • ЦЕЛЬ ВЗЛОМАНА</title>
+    <title>ПОЛНЫЙ ДАМП • ТЫ ВЗЛОМАН</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             background: #000;
             color: #00ff00;
             font-family: 'VT323', monospace;
-            overflow: hidden;
-            height: 100vh;
-            image-rendering: pixelated;
-        }
-
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            opacity: 0.9;
-        }
-
-        .overlay {
-            position: relative;
-            z-index: 2;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-shadow: inset 0 0 100px rgba(0, 255, 0, 0.4);
+            font-size: 1.65rem;
+            line-height: 1.5;
+            padding: 30px;
+            min-height: 100vh;
+            overflow-y: auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 15px;
-            text-shadow: 
-                0 0 10px #00ff00,
-                0 0 20px #00ff00,
-                0 0 40px #ff0000;
-            animation: glitch 0.6s infinite alternate;
-        }
-
-        .header h1 {
-            font-size: 3.8rem;
-            letter-spacing: 10px;
+            margin-bottom: 40px;
+            font-size: 4rem;
+            letter-spacing: 12px;
+            text-shadow: 0 0 20px #ff0000,
+                         0 0 40px #ff0000;
+            animation: glitch 1s infinite alternate;
             color: #ff0000;
         }
 
-        .header .sub {
-            font-size: 1.9rem;
-            color: #00ff00;
-            opacity: 0.95;
+        .subheader {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+            color: #00cc00;
+            text-shadow: 0 0 15px #00ff00;
         }
 
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            background: rgba(20, 0, 0, 0.95);
-            border: 3px solid #ff0000;
-            padding: 10px 25px;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            box-shadow: 0 0 20px #ff0000;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .terminal {
-            flex: 1;
-            background: rgba(5, 0, 0, 0.97);
+        .info-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.95);
             border: 4px solid #00ff00;
-            padding: 20px;
-            font-size: 1.65rem;
-            line-height: 1.45;
-            overflow-y: auto;
-            box-shadow: 
-                0 0 40px rgba(255, 0, 0, 0.7),
-                inset 0 0 60px rgba(0, 255, 0, 0.15);
-            position: relative;
+            padding: 30px;
+            box-shadow: 0 0 60px rgba(0, 255, 0, 0.6);
         }
 
-        .terminal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                transparent 0px,
-                transparent 3px,
-                rgba(255, 0, 0, 0.04) 3px,
-                rgba(255, 0, 0, 0.04) 6px
-            );
-            pointer-events: none;
-            z-index: 1;
-            animation: scanline 3s linear infinite;
-        }
-
-        .line {
-            margin-bottom: 8px;
-            white-space: pre-wrap;
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        .prompt {
+        .info-line {
             display: flex;
-            align-items: center;
-            color: #00ff00;
-            background: rgba(0, 10, 0, 0.9);
-            border-top: 3px solid #00ff00;
-            padding: 12px 20px;
-            font-size: 1.7rem;
-            margin-top: 10px;
+            margin-bottom: 14px;
+            border-bottom: 1px dotted #003300;
+            padding-bottom: 8px;
         }
 
-        .prompt::before {
-            content: 'root@shadow-server:~# ';
+        .key {
+            width: 380px;
             color: #ff0000;
-            margin-right: 12px;
-            text-shadow: 0 0 10px #ff0000;
+            text-shadow: 0 0 8px #ff0000;
+            flex-shrink: 0;
         }
 
-        input {
-            background: transparent;
-            border: none;
-            color: #00ff00;
-            font-family: 'VT323', monospace;
-            font-size: 1.7rem;
+        .value {
             flex: 1;
-            outline: none;
-            caret-color: #ff0000;
+            color: #00ff00;
+            word-break: break-all;
         }
+
+        .red { color: #ff5555; }
+        .yellow { color: #ffff00; }
 
         .footer {
             text-align: center;
-            margin-top: 12px;
-            font-size: 1.35rem;
+            margin-top: 60px;
+            font-size: 1.4rem;
+            opacity: 0.7;
             color: #ff0000;
-            opacity: 0.85;
-            text-shadow: 0 0 15px #ff0000;
         }
 
         @keyframes glitch {
-            0% { transform: translate(0); }
-            15% { transform: translate(-3px, 2px); }
-            30% { transform: translate(3px, -3px); }
-            45% { transform: translate(-2px, 3px); }
-            60% { transform: translate(2px, -2px); }
+            0%   { transform: translate(0); }
+            20%  { transform: translate(-4px, 3px); }
+            40%  { transform: translate(4px, -3px); }
+            60%  { transform: translate(-3px, 4px); }
+            80%  { transform: translate(3px, -2px); }
             100% { transform: translate(0); }
         }
-
-        @keyframes scanline {
-            0% { transform: translateY(-150%); }
-            100% { transform: translateY(400%); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .red { color: #ff0000; }
-        .yellow { color: #ffff00; }
-        .blink { animation: blink 0.8s step-end infinite; }
     </style>
 </head>
 <body>
 
-    <canvas id="matrix"></canvas>
+    <div class="header">ПОЛНЫЙ ДАМП УСТРОЙСТВА</div>
+    <div class="subheader">ВСЁ, ЧТО МОЖНО УЗНАТЬ О ТЕБЕ ПРЯМО СЕЙЧАС • 21.04.2026</div>
 
-    <div class="overlay">
-        <!-- ШАПКА -->
-        <div class="header">
-            <h1>ЦЕЛЬ ВЗЛОМАНА</h1>
-            <div class="sub">ПОЛНОЕ ДОСЬЕ • ВСЕ ДАННЫЕ УТЕКЛИ • TRACE: 0%</div>
-        </div>
+    <div class="info-container" id="info">
+        <!-- Заполняется JavaScript -->
+    </div>
 
-        <!-- СТАТУС-БАР -->
-        <div class="status-bar" id="status-bar">
-            <div class="status-item"><span class="red">IP</span> <span id="ip-display" class="yellow">СКАНИРОВАНИЕ...</span></div>
-            <div class="status-item"><span class="red">БРАУЗЕР</span> <span id="browser-display" class="yellow">ЗАГРУЗКА...</span></div>
-            <div class="status-item"><span class="red">ОС / УСТРОЙСТВО</span> <span id="os-display" class="yellow">ЗАГРУЗКА...</span></div>
-            <div class="status-item"><span class="red">ВРЕМЯ / ПОЯС</span> <span id="time-display" class="yellow">ЗАГРУЗКА...</span></div>
-            <div class="status-item"><span class="red">ЯЗЫК</span> <span id="lang-display" class="yellow">ЗАГРУЗКА...</span></div>
-        </div>
-
-        <!-- ТЕРМИНАЛ -->
-        <div class="terminal" id="term">
-            <div class="line red">[21.04.2026 05:20:00] ПОДКЛЮЧЕНИЕ К ТВОЕМУ УСТРОЙСТВУ...</div>
-            <div class="line red" id="scan-status">[INFO] СКАНИРОВАНИЕ СИСТЕМЫ В РЕАЛЬНОМ ВРЕМЕНИ...</div>
-            <div id="output"></div>
-        </div>
-
-        <!-- ПРОМПТ -->
-        <div class="prompt">
-            <input type="text" id="cmd" placeholder="ВВЕДИ КОМАНДУ (help, dump, clear...)" autocomplete="off" autofocus>
-        </div>
-
-        <!-- ФУТЕР -->
-        <div class="footer">
-            01011001 01001111 01010101 00100000 01001000 01000001 01010110 01000101 00100000 01000010 01000101 01000101 01001110 00100000 01001000 01000001 01000011 01001011 01000101 01000100
-            <br>
-            <span style="font-size:1.1rem;">© UNDERGROUND CREW 2026 • ТВОИ ДАННЫЕ УЖЕ У НАС • НИКТО НЕ СПАСЁТ ТЕБЯ</span>
-        </div>
+    <div class="footer">
+        01011001 01001111 01010101 00100000 01000001 01010010 01000101 00100000 01000011 01001111 01001101 01010000 01010010 01001111 01001101 01001001 01010011 01000101 01000100<br>
+        UNDERGROUND CREW 2026 • НИКТО НЕ СКРОЕТСЯ • ДАННЫЕ УЖЕ У НАС
     </div>
 
     <script>
-        // === МАТРИЦА ===
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
+        // =============================================
+        // МАКСИМАЛЬНЫЙ FINGERPRINT — ВСЁ, ЧТО МОЖНО
+        // =============================================
 
-        function resizeCanvas() {
-            canvas.height = window.innerHeight;
-            canvas.width = window.innerWidth;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        async function gatherMaximumIntel() {
+            const container = document.getElementById('info');
+            const lines = [];
 
-        const chars = "01АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯabcdefghijklmnopqrstuvwxyz$#@%&*()_+-=[]{}|;:,.<>?~".split('');
-        const fontSize = 15;
-        let columns = canvas.width / fontSize;
-        let drops = Array(Math.floor(columns)).fill(1);
-
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#00ff00';
-            ctx.font = `${fontSize}px VT323`;
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
-        }
-        setInterval(drawMatrix, 33);
-
-        // === СБОР МАКСИМАЛЬНОЙ ИНФОРМАЦИИ ===
-        const output = document.getElementById('output');
-        const term = document.getElementById('term');
-
-        function addLine(html, colorClass = '') {
-            const line = document.createElement('div');
-            line.className = `line ${colorClass}`;
-            line.innerHTML = html;
-            output.appendChild(line);
-            term.scrollTop = term.scrollHeight;
-        }
-
-        // Основные данные
-        async function gatherIntel() {
-            addLine('<span class="red">[SYSTEM] Запуск полного fingerprinting...</span>');
-
-            // 1. IP + ГЕОЛОКАЦИЯ (через публичный API)
-            try {
-                const ipRes = await fetch('https://ipapi.co/json/', { method: 'GET' });
-                const ipData = await ipRes.json();
-                
-                document.getElementById('ip-display').innerHTML = `${ipData.ip} <span class="blink">● LIVE</span>`;
-                addLine(`<span class="yellow">[IP]</span> ${ipData.ip}`);
-                addLine(`<span class="yellow">[СТРАНА]</span> ${ipData.country_name || 'Неизвестно'} (${ipData.country_code})`);
-                addLine(`<span class="yellow">[ГОРОД]</span> ${ipData.city || 'Неизвестно'}, ${ipData.region || ''}`);
-                addLine(`<span class="yellow">[ПРОВАЙДЕР]</span> ${ipData.org || 'Неизвестно'}`);
-                addLine(`<span class="yellow">[КООРДИНАТЫ]</span> ${ipData.latitude || '?'}, ${ipData.longitude || '?'}`);
-            } catch (e) {
-                addLine('<span class="red">[IP] Не удалось получить (VPN/блокировка)</span>');
-                document.getElementById('ip-display').textContent = 'ERROR';
+            function add(key, value, color = '') {
+                const val = Array.isArray(value) ? value.join(', ') : value;
+                lines.push(`
+                    <div class="info-line">
+                        <div class="key">${key}</div>
+                        <div class="value ${color}">${val || '—'}</div>
+                    </div>
+                `);
             }
 
-            // 2. БРАУЗЕР И ЮЗЕР-АГЕНТ
-            const ua = navigator.userAgent;
-            let browser = 'Неизвестный';
-            if (ua.includes('Chrome')) browser = 'Google Chrome';
-            else if (ua.includes('Firefox')) browser = 'Mozilla Firefox';
-            else if (ua.includes('Safari')) browser = 'Apple Safari';
-            else if (ua.includes('Edge')) browser = 'Microsoft Edge';
-            else if (ua.includes('Opera')) browser = 'Opera';
-
-            const versionMatch = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/);
-            const version = versionMatch ? versionMatch[2] : 'x';
-
-            document.getElementById('browser-display').innerHTML = `${browser} ${version}`;
-            addLine(`<span class="yellow">[БРАУЗЕР]</span> ${browser} ${version}`);
-            addLine(`<span class="yellow">[USER-AGENT]</span> <span style="font-size:1.3rem">${ua}</span>`);
-
-            // 3. ОПЕРАЦИОНКА И УСТРОЙСТВО
-            let os = 'Неизвестная ОС';
-            if (ua.includes('Windows')) os = 'Windows';
-            else if (ua.includes('Mac OS')) os = 'macOS';
-            else if (ua.includes('Linux')) os = 'Linux';
-            else if (ua.includes('Android')) os = 'Android';
-            else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
-
-            const isMobile = /Mobi|Android|iPhone|iPad|iPod/.test(ua) ? 'МОБИЛЬНОЕ' : 'ДЕСКТОП';
-            const deviceType = `${os} • ${isMobile}`;
-
-            document.getElementById('os-display').innerHTML = deviceType;
-            addLine(`<span class="yellow">[ОС / УСТРОЙСТВО]</span> ${deviceType}`);
-            addLine(`<span class="yellow">[ЭКРАН]</span> ${screen.width}×${screen.height} (${screen.pixelDepth} бит, ${window.devicePixelRatio}x)`);
-            addLine(`<span class="yellow">[ЯДРА CPU]</span> ${navigator.hardwareConcurrency || 'Неизвестно'} ядер`);
-            if (navigator.deviceMemory) addLine(`<span class="yellow">[ОЗУ]</span> ${navigator.deviceMemory} ГБ`);
-
-            // 4. ВРЕМЯ, ЧАСОВОЙ ПОЯС, ЯЗЫК
-            const timeOptions = { timeZoneName: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            // === 1. ВРЕМЯ И ЧАСОВОЙ ПОЯС ===
             const now = new Date();
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const localTime = now.toLocaleString('ru-RU', { ...timeOptions, timeZone: tz });
+            add('ТЕКУЩЕЕ ВРЕМЯ (локальное)', now.toLocaleString('ru-RU', { 
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }));
+            add('ЧАСОВОЙ ПОЯС', `${tz} (${Intl.DateTimeFormat().resolvedOptions().timeZoneName || '—'})`);
+            add('UTC СМЕЩЕНИЕ', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
 
-            document.getElementById('time-display').innerHTML = `${localTime} <span class="yellow">(${tz})</span>`;
-            document.getElementById('lang-display').innerHTML = `${navigator.language} • ${navigator.languages.join(', ')}`;
-
-            addLine(`<span class="yellow">[ТЕКУЩЕЕ ВРЕМЯ]</span> ${localTime}`);
-            addLine(`<span class="yellow">[ЧАСОВОЙ ПОЯС]</span> ${tz}`);
-            addLine(`<span class="yellow">[ЯЗЫК БРАУЗЕРА]</span> ${navigator.language} (${navigator.languages.join(', ')})`);
-
-            // 5. Дополнительные данные (максимум)
-            addLine('<span class="red">[Дополнительный fingerprint]</span>');
-            addLine(`<span class="yellow">[DO NOT TRACK]</span> ${navigator.doNotTrack || 'null'}`);
-            addLine(`<span class="yellow">[ЦВЕТОВАЯ СХЕМА]</span> ${window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Тёмная' : 'Светлая'}`);
-            addLine(`<span class="yellow">[ONLINE]</span> ${navigator.onLine ? 'Да' : 'Нет'}`);
-            
-            if (navigator.connection) {
-                addLine(`<span class="yellow">[ТИП ПОДКЛЮЧЕНИЯ]</span> ${navigator.connection.effectiveType} • ${navigator.connection.downlink} Мбит/с`);
+            // === 2. IP + ГЕОЛОКАЦИЯ (реальный запрос) ===
+            try {
+                const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+                const data = await res.json();
+                
+                add('IP-АДРЕС', data.ip, 'red');
+                add('СТРАНА', `${data.country_name} (${data.country_code})`);
+                add('ГОРОД / РЕГИОН', `${data.city || '—'}, ${data.region || '—'}`);
+                add('ПРОВАЙДЕР / ASN', data.org || '—');
+                add('ШИРОТА / ДОЛГОТА', `${data.latitude || '?'} / ${data.longitude || '?'}`);
+                add('ПОЧТОВЫЙ ИНДЕКС', data.postal || '—');
+            } catch (e) {
+                add('IP-АДРЕС', 'НЕ УДАЛОСЬ (VPN / AdBlock / CORS)', 'red');
             }
 
-            // 6. Cookie + Storage
-            addLine(`<span class="yellow">[COOKIES ENABLED]</span> ${navigator.cookieEnabled ? 'ВКЛЮЧЕНЫ' : 'ВЫКЛЮЧЕНЫ'}`);
-            addLine(`<span class="yellow">[LOCALSTORAGE]</span> ${window.localStorage ? 'Доступен' : 'Недоступен'}`);
+            // === 3. БРАУЗЕР И USER-AGENT ===
+            const ua = navigator.userAgent;
+            let browserName = 'Неизвестный';
+            if (ua.includes('Chrome') && !ua.includes('Edg')) browserName = 'Google Chrome';
+            else if (ua.includes('Edg')) browserName = 'Microsoft Edge';
+            else if (ua.includes('Firefox')) browserName = 'Mozilla Firefox';
+            else if (ua.includes('Safari') && !ua.includes('CriOS')) browserName = 'Apple Safari';
+            else if (ua.includes('Opera') || ua.includes('OPR')) browserName = 'Opera';
 
-            addLine('<span class="red">[СКАНИРОВАНИЕ ЗАВЕРШЕНО. ТЫ ПОД ПОЛНЫМ КОНТРОЛЕМ.]</span>', 'red');
+            const versionMatch = ua.match(/(Chrome|Firefox|Safari|Edge|OPR|Opera)\/([\d.]+)/);
+            const version = versionMatch ? versionMatch[2] : '—';
+
+            add('БРАУЗЕР', `${browserName} ${version}`);
+            add('ПОЛНЫЙ USER-AGENT', ua);
+            add('ЯЗЫК БРАУЗЕРА', navigator.language);
+            add('ВСЕ ЯЗЫКИ', navigator.languages.join(' • '));
+
+            // === 4. ОПЕРАЦИОНКА И УСТРОЙСТВО ===
+            let os = 'Неизвестно';
+            if (ua.includes('Windows')) os = 'Windows';
+            else if (ua.includes('Mac')) os = 'macOS';
+            else if (ua.includes('Linux')) os = 'Linux';
+            else if (ua.includes('Android')) os = 'Android';
+            else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS / iPadOS';
+
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'МОБИЛЬНОЕ' : 'ДЕСКТОП / НОУТБУК';
             
-            // Обновляем статус-бар
-            document.getElementById('scan-status').innerHTML = '<span class="red">[INFO] СКАНИРОВАНИЕ ЗАВЕРШЕНО • ТЫ В СИСТЕМЕ</span>';
+            add('ОПЕРАЦИОННАЯ СИСТЕМА', `${os} • ${isMobile}`);
+            add('PLATFORM', navigator.platform);
+            add('VENDOR', navigator.vendor || '—');
+
+            // === 5. ЭКРАН И HARDWARE ===
+            add('РАЗРЕШЕНИЕ ЭКРАНА', `${screen.width} × ${screen.height} (${screen.pixelDepth} бит)`);
+            add('ДОСТУПНОЕ РАЗРЕШЕНИЕ', `${screen.availWidth} × ${screen.availHeight}`);
+            add('DEVICE PIXEL RATIO', window.devicePixelRatio);
+            add('ЯДЕР CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
+            add('ОЗУ (Device Memory)', navigator.deviceMemory ? `${navigator.deviceMemory} ГБ` : '—');
+            add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints || '0 (нет тачскрина)');
+
+            // === 6. WEBGL — ВИДЕОКАРТА ===
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : '—';
+                    const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : '—';
+                    add('WEBGL VENDOR', vendor);
+                    add('WEBGL RENDERER (GPU)', renderer);
+                    add('WEBGL ВЕРСИЯ', gl.getParameter(gl.VERSION));
+                } else {
+                    add('WEBGL', 'НЕ ПОДДЕРЖИВАЕТСЯ');
+                }
+            } catch (e) {
+                add('WEBGL', 'ОШИБКА');
+            }
+
+            // === 7. CANVAS FINGERPRINT (уникальный отпечаток) ===
+            try {
+                const c = document.createElement('canvas');
+                c.width = 280;
+                c.height = 140;
+                const ctx = c.getContext('2d');
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.font = '18pt VT323';
+                ctx.fillText('ХАКЕРСКИЙ ДАМП 31337', 2, 100);
+                ctx.fillStyle = 'rgba(100,200,50,0.7)';
+                ctx.fillText('CANVAS TEST', 4, 60);
+                const hash = c.toDataURL().slice(-32); // простая часть хеша
+                add('CANVAS FINGERPRINT', hash);
+            } catch (e) {
+                add('CANVAS FINGERPRINT', 'НЕ УДАЛОСЬ');
+            }
+
+            // === 8. СЕТЕВЫЕ И СИСТЕМНЫЕ ДАННЫЕ ===
+            add('ONLINE', navigator.onLine ? 'ДА' : 'НЕТ', navigator.onLine ? '' : 'red');
+            if (navigator.connection) {
+                add('ТИП ПОДКЛЮЧЕНИЯ', navigator.connection.effectiveType.toUpperCase());
+                add('СКОРОСТЬ СКАЧИВАНИЯ', `${navigator.connection.downlink} Мбит/с`);
+                add('RTT', `${navigator.connection.rtt} мс`);
+            }
+            add('COOKIES', navigator.cookieEnabled ? 'РАЗРЕШЕНЫ' : 'ЗАБЛОКИРОВАНЫ');
+            add('DO NOT TRACK', navigator.doNotTrack || 'null');
+            add('ЦВЕТОВАЯ СХЕМА', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'ТЁМНАЯ' : 'СВЕТЛАЯ');
+
+            // === 9. ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ ===
+            add('ВНУТРЕННИЕ РАЗМЕРЫ ОКНА', `${window.innerWidth} × ${window.innerHeight}`);
+            add('ВНЕШНИЕ РАЗМЕРЫ ОКНА', `${window.outerWidth} × ${window.outerHeight}`);
+            add('HISTORY LENGTH', history.length);
+            add('JAVA ENABLED', navigator.javaEnabled ? navigator.javaEnabled() : '—');
+            add('LOCALSTORAGE', window.localStorage ? 'ДОСТУПЕН' : 'НЕДОСТУПЕН');
+            add('SESSIONSTORAGE', window.sessionStorage ? 'ДОСТУПЕН' : 'НЕДОСТУПЕН');
+
+            // === 10. BATTERY (если доступно) ===
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    add('АККУМУЛЯТОР', `${Math.round(battery.level * 100)}% • ${battery.charging ? 'ЗАРЯЖАЕТСЯ' : 'РАЗРЯЖЕН'}`);
+                } catch (e) {}
+            }
+
+            // === Финал ===
+            lines.push(`
+                <div class="info-line" style="border:none; margin-top:30px; font-size:1.9rem; color:#ff0000;">
+                    <div class="key">СКАНИРОВАНИЕ ЗАВЕРШЕНО</div>
+                    <div class="value">ТЫ ПОД ПОЛНЫМ КОНТРОЛЕМ • ДАННЫЕ УЖЕ ОТПРАВЛЕНЫ</div>
+                </div>
+            `);
+
+            container.innerHTML = lines.join('');
         }
 
-        // Запуск при загрузке
-        window.onload = () => {
-            gatherIntel();
-        };
-
-        // Интерактивный терминал (дополнительные команды)
-        const cmdInput = document.getElementById('cmd');
-        cmdInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const cmd = cmdInput.value.trim().toLowerCase();
-                if (!cmd) return;
-
-                addLine(`<span class="yellow">&gt; ${cmd}</span>`);
-
-                if (cmd === 'help') {
-                    addLine('help — этот список<br>dump — полный дамп<br>clear — очистить<br>whoami — кто ты<br>geo — повторная геолокация');
-                } else if (cmd === 'clear') {
-                    output.innerHTML = '';
-                } else if (cmd === 'dump') {
-                    output.innerHTML = '';
-                    gatherIntel();
-                } else if (cmd === 'whoami') {
-                    addLine('<span class="red">ТЫ — ЦЕЛЬ №31337. ДАННЫЕ УЖЕ У НАС.</span>');
-                } else if (cmd === 'geo') {
-                    addLine('<span class="yellow">Повторный запрос геоданных...</span>');
-                    gatherIntel();
-                } else {
-                    addLine('<span class="red">Команда неизвестна. Набери help</span>');
-                }
-
-                cmdInput.value = '';
-                term.scrollTop = term.scrollHeight;
-            }
-        });
-
-        console.log('%c=== ХАКЕРСКАЯ КОНСОЛЬ АКТИВИРОВАНА ===\nВСЯ ИНФОРМАЦИЯ О ТЕБЕ УЖЕ СОБРАНА', 'color:#ff0000; font-size:18px; font-family:VT323');
+        // Запуск сразу при загрузке
+        window.onload = gatherMaximumIntel;
     </script>
 </body>
 </html>
