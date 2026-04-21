@@ -104,9 +104,8 @@
             
             <p>Приложение не является VPN. Оно использует VPN-режим на Android для перенаправления трафика, но не передает ничего на удаленный сервер. Оно не шифрует трафик и не скрывает ваш IP-адрес.</p>
             
-            <!-- Здесь находится картинка image.png -->
             <div class="image-container">
-                <img src="image.png" alt="Скриншот приложения ByeDPI для Android" width="800" height="600">
+                <img src="image.jpeg" alt="Скриншот приложения ByeDPI для Android" width="800" height="600">
             </div>
         </div>
         
