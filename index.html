@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ПОЛНЫЙ ДАМП • ТЫ ВЗЛОМАН</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -14,17 +14,17 @@
             color: #00ff00;
             font-family: 'VT323', monospace;
             font-size: 1.65rem;
-            line-height: 1.5;
-            padding: 30px;
+            line-height: 1.55;
+            padding: 25px 20px;
             min-height: 100vh;
             overflow-y: auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            font-size: 4rem;
-            letter-spacing: 12px;
+            margin-bottom: 30px;
+            font-size: 3.2rem;
+            letter-spacing: 10px;
             text-shadow: 0 0 20px #ff0000,
                          0 0 40px #ff0000;
             animation: glitch 1s infinite alternate;
@@ -33,39 +33,59 @@
 
         .subheader {
             text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
+            font-size: 1.85rem;
+            margin-bottom: 40px;
             color: #00cc00;
             text-shadow: 0 0 15px #00ff00;
         }
 
         .info-container {
-            max-width: 1100px;
+            max-width: 100%;
             margin: 0 auto;
             background: rgba(10, 10, 10, 0.95);
             border: 4px solid #00ff00;
-            padding: 30px;
+            padding: 25px 20px;
             box-shadow: 0 0 60px rgba(0, 255, 0, 0.6);
         }
 
         .info-line {
             display: flex;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             border-bottom: 1px dotted #003300;
-            padding-bottom: 8px;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .key {
-            width: 380px;
             color: #ff0000;
             text-shadow: 0 0 8px #ff0000;
-            flex-shrink: 0;
+            flex: 0 0 100%;
+            font-size: 1.55rem;
         }
 
         .value {
-            flex: 1;
+            flex: 1 1 100%;
             color: #00ff00;
             word-break: break-all;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                font-size: 1.75rem;
+                padding: 40px 30px;
+            }
+            .header { font-size: 4rem; }
+            .subheader { font-size: 2.1rem; }
+            .info-container { max-width: 1100px; padding: 35px 40px; }
+            .info-line {
+                flex-wrap: nowrap;
+            }
+            .key {
+                flex: 0 0 380px;
+                font-size: 1.65rem;
+            }
+            .value { flex: 1; }
         }
 
         .red { color: #ff5555; }
@@ -73,18 +93,19 @@
 
         .footer {
             text-align: center;
-            margin-top: 60px;
-            font-size: 1.4rem;
-            opacity: 0.7;
+            margin-top: 50px;
+            font-size: 1.35rem;
+            opacity: 0.75;
             color: #ff0000;
+            line-height: 1.4;
         }
 
         @keyframes glitch {
             0%   { transform: translate(0); }
-            20%  { transform: translate(-4px, 3px); }
-            40%  { transform: translate(4px, -3px); }
-            60%  { transform: translate(-3px, 4px); }
-            80%  { transform: translate(3px, -2px); }
+            20%  { transform: translate(-3px, 2px); }
+            40%  { transform: translate(3px, -3px); }
+            60%  { transform: translate(-2px, 3px); }
+            80%  { transform: translate(2px, -2px); }
             100% { transform: translate(0); }
         }
     </style>
@@ -105,7 +126,8 @@
 
     <script>
         // =============================================
-        // МАКСИМАЛЬНЫЙ FINGERPRINT — ВСЁ, ЧТО МОЖНО
+        // МАКСИМАЛЬНЫЙ FINGERPRINT — РАБОТАЕТ НА МОБИЛАХ И ПК
+        // Убраны все ненадёжные/устаревшие данные (battery, java и т.д.)
         // =============================================
 
         async function gatherMaximumIntel() {
@@ -113,41 +135,40 @@
             const lines = [];
 
             function add(key, value, color = '') {
-                const val = Array.isArray(value) ? value.join(', ') : value;
+                const val = Array.isArray(value) ? value.join(' • ') : (value || '—');
                 lines.push(`
                     <div class="info-line">
                         <div class="key">${key}</div>
-                        <div class="value ${color}">${val || '—'}</div>
+                        <div class="value ${color}">${val}</div>
                     </div>
                 `);
             }
 
-            // === 1. ВРЕМЯ И ЧАСОВОЙ ПОЯС ===
+            // 1. ВРЕМЯ И ЧАСОВОЙ ПОЯС
             const now = new Date();
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            add('ТЕКУЩЕЕ ВРЕМЯ (локальное)', now.toLocaleString('ru-RU', { 
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
+            add('ТЕКУЩЕЕ ВРЕМЯ (локальное)', now.toLocaleString('ru-RU', {
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }));
-            add('ЧАСОВОЙ ПОЯС', `${tz} (${Intl.DateTimeFormat().resolvedOptions().timeZoneName || '—'})`);
+            add('ЧАСОВОЙ ПОЯС', tz);
             add('UTC СМЕЩЕНИЕ', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
 
-            // === 2. IP + ГЕОЛОКАЦИЯ (реальный запрос) ===
+            // 2. IP + ГЕО (работает на всех устройствах с интернетом)
             try {
                 const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
                 const data = await res.json();
                 
                 add('IP-АДРЕС', data.ip, 'red');
-                add('СТРАНА', `${data.country_name} (${data.country_code})`);
+                add('СТРАНА', `${data.country_name || '—'} (${data.country_code || '—'})`);
                 add('ГОРОД / РЕГИОН', `${data.city || '—'}, ${data.region || '—'}`);
-                add('ПРОВАЙДЕР / ASN', data.org || '—');
+                add('ПРОВАЙДЕР', data.org || '—');
                 add('ШИРОТА / ДОЛГОТА', `${data.latitude || '?'} / ${data.longitude || '?'}`);
-                add('ПОЧТОВЫЙ ИНДЕКС', data.postal || '—');
             } catch (e) {
-                add('IP-АДРЕС', 'НЕ УДАЛОСЬ (VPN / AdBlock / CORS)', 'red');
+                add('IP-АДРЕС', 'НЕ УДАЛОСЬ ПОЛУЧИТЬ (VPN / AdBlock)', 'red');
             }
 
-            // === 3. БРАУЗЕР И USER-AGENT ===
+            // 3. БРАУЗЕР И USER-AGENT
             const ua = navigator.userAgent;
             let browserName = 'Неизвестный';
             if (ua.includes('Chrome') && !ua.includes('Edg')) browserName = 'Google Chrome';
@@ -161,10 +182,10 @@
 
             add('БРАУЗЕР', `${browserName} ${version}`);
             add('ПОЛНЫЙ USER-AGENT', ua);
-            add('ЯЗЫК БРАУЗЕРА', navigator.language);
-            add('ВСЕ ЯЗЫКИ', navigator.languages.join(' • '));
+            add('ЯЗЫК БРАУЗЕРА', navigator.language || '—');
+            add('ВСЕ ЯЗЫКИ', navigator.languages ? navigator.languages.join(' • ') : '—');
 
-            // === 4. ОПЕРАЦИОНКА И УСТРОЙСТВО ===
+            // 4. ОС И УСТРОЙСТВО
             let os = 'Неизвестно';
             if (ua.includes('Windows')) os = 'Windows';
             else if (ua.includes('Mac')) os = 'macOS';
@@ -172,21 +193,18 @@
             else if (ua.includes('Android')) os = 'Android';
             else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS / iPadOS';
 
-            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'МОБИЛЬНОЕ' : 'ДЕСКТОП / НОУТБУК';
-            
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'МОБИЛЬНОЕ' : 'ДЕСКТОП';
             add('ОПЕРАЦИОННАЯ СИСТЕМА', `${os} • ${isMobile}`);
-            add('PLATFORM', navigator.platform);
-            add('VENDOR', navigator.vendor || '—');
+            add('PLATFORM', navigator.platform || '—');
 
-            // === 5. ЭКРАН И HARDWARE ===
-            add('РАЗРЕШЕНИЕ ЭКРАНА', `${screen.width} × ${screen.height} (${screen.pixelDepth} бит)`);
-            add('ДОСТУПНОЕ РАЗРЕШЕНИЕ', `${screen.availWidth} × ${screen.availHeight}`);
-            add('DEVICE PIXEL RATIO', window.devicePixelRatio);
+            // 5. ЭКРАН И HARDWARE (полностью безопасно на мобилах)
+            add('РАЗРЕШЕНИЕ ЭКРАНА', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
+            add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
             add('ЯДЕР CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
-            add('ОЗУ (Device Memory)', navigator.deviceMemory ? `${navigator.deviceMemory} ГБ` : '—');
-            add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints || '0 (нет тачскрина)');
+            if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} ГБ`);
+            add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (тачскрин)` : '0');
 
-            // === 6. WEBGL — ВИДЕОКАРТА ===
+            // 6. WEBGL (видеокарта) — с защитой
             try {
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -196,19 +214,17 @@
                     const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : '—';
                     add('WEBGL VENDOR', vendor);
                     add('WEBGL RENDERER (GPU)', renderer);
-                    add('WEBGL ВЕРСИЯ', gl.getParameter(gl.VERSION));
                 } else {
                     add('WEBGL', 'НЕ ПОДДЕРЖИВАЕТСЯ');
                 }
             } catch (e) {
-                add('WEBGL', 'ОШИБКА');
+                add('WEBGL', '—');
             }
 
-            // === 7. CANVAS FINGERPRINT (уникальный отпечаток) ===
+            // 7. CANVAS FINGERPRINT (уникальный отпечаток)
             try {
                 const c = document.createElement('canvas');
-                c.width = 280;
-                c.height = 140;
+                c.width = 280; c.height = 140;
                 const ctx = c.getContext('2d');
                 ctx.textBaseline = 'alphabetic';
                 ctx.fillStyle = '#f60';
@@ -218,51 +234,37 @@
                 ctx.fillText('ХАКЕРСКИЙ ДАМП 31337', 2, 100);
                 ctx.fillStyle = 'rgba(100,200,50,0.7)';
                 ctx.fillText('CANVAS TEST', 4, 60);
-                const hash = c.toDataURL().slice(-32); // простая часть хеша
+                const hash = c.toDataURL().slice(-32);
                 add('CANVAS FINGERPRINT', hash);
             } catch (e) {
-                add('CANVAS FINGERPRINT', 'НЕ УДАЛОСЬ');
+                add('CANVAS FINGERPRINT', '—');
             }
 
-            // === 8. СЕТЕВЫЕ И СИСТЕМНЫЕ ДАННЫЕ ===
+            // 8. СЕТЕВЫЕ ДАННЫЕ
             add('ONLINE', navigator.onLine ? 'ДА' : 'НЕТ', navigator.onLine ? '' : 'red');
             if (navigator.connection) {
-                add('ТИП ПОДКЛЮЧЕНИЯ', navigator.connection.effectiveType.toUpperCase());
-                add('СКОРОСТЬ СКАЧИВАНИЯ', `${navigator.connection.downlink} Мбит/с`);
-                add('RTT', `${navigator.connection.rtt} мс`);
+                add('ТИП ПОДКЛЮЧЕНИЯ', (navigator.connection.effectiveType || '—').toUpperCase());
+                add('СКОРОСТЬ', `${navigator.connection.downlink || '?'} Мбит/с`);
             }
             add('COOKIES', navigator.cookieEnabled ? 'РАЗРЕШЕНЫ' : 'ЗАБЛОКИРОВАНЫ');
             add('DO NOT TRACK', navigator.doNotTrack || 'null');
             add('ЦВЕТОВАЯ СХЕМА', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'ТЁМНАЯ' : 'СВЕТЛАЯ');
 
-            // === 9. ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ ===
+            // 9. РАЗМЕРЫ ОКНА
             add('ВНУТРЕННИЕ РАЗМЕРЫ ОКНА', `${window.innerWidth} × ${window.innerHeight}`);
-            add('ВНЕШНИЕ РАЗМЕРЫ ОКНА', `${window.outerWidth} × ${window.outerHeight}`);
             add('HISTORY LENGTH', history.length);
-            add('JAVA ENABLED', navigator.javaEnabled ? navigator.javaEnabled() : '—');
-            add('LOCALSTORAGE', window.localStorage ? 'ДОСТУПЕН' : 'НЕДОСТУПЕН');
-            add('SESSIONSTORAGE', window.sessionStorage ? 'ДОСТУПЕН' : 'НЕДОСТУПЕН');
 
-            // === 10. BATTERY (если доступно) ===
-            if (navigator.getBattery) {
-                try {
-                    const battery = await navigator.getBattery();
-                    add('АККУМУЛЯТОР', `${Math.round(battery.level * 100)}% • ${battery.charging ? 'ЗАРЯЖАЕТСЯ' : 'РАЗРЯЖЕН'}`);
-                } catch (e) {}
-            }
-
-            // === Финал ===
+            // Финал
             lines.push(`
-                <div class="info-line" style="border:none; margin-top:30px; font-size:1.9rem; color:#ff0000;">
-                    <div class="key">СКАНИРОВАНИЕ ЗАВЕРШЕНО</div>
-                    <div class="value">ТЫ ПОД ПОЛНЫМ КОНТРОЛЕМ • ДАННЫЕ УЖЕ ОТПРАВЛЕНЫ</div>
+                <div class="info-line" style="border:none; margin-top:40px; font-size:2rem; color:#ff0000; text-align:center;">
+                    СКАНИРОВАНИЕ ЗАВЕРШЕНО • ТЫ ПОД ПОЛНЫМ КОНТРОЛЕМ
                 </div>
             `);
 
             container.innerHTML = lines.join('');
         }
 
-        // Запуск сразу при загрузке
+        // Запуск сразу
         window.onload = gatherMaximumIntel;
     </script>
 </body>
