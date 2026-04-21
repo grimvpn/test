@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ПОЛНЫЙ ДАМП • ТЫ ВЗЛОМАН</title>
+    <title>ПОЛНЫЙ ДАМП</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -112,24 +112,18 @@
 </head>
 <body>
 
-    <div class="header">ПОЛНЫЙ ДАМП УСТРОЙСТВА</div>
-    <div class="subheader">ВСЁ, ЧТО МОЖНО УЗНАТЬ О ТЕБЕ ПРЯМО СЕЙЧАС • 21.04.2026</div>
+    <div class="header">ДАМП УСТРОЙСТВА</div>
+    <div class="subheader">21.04.2026</div>
 
     <div class="info-container" id="info">
-        <!-- Заполняется JavaScript -->
     </div>
 
     <div class="footer">
         01011001 01001111 01010101 00100000 01000001 01010010 01000101 00100000 01000011 01001111 01001101 01010000 01010010 01001111 01001101 01001001 01010011 01000101 01000100<br>
-        UNDERGROUND CREW 2026 • НИКТО НЕ СКРОЕТСЯ • ДАННЫЕ УЖЕ У НАС
+        2026 • ДАННЫЕ УЖЕ У НАС
     </div>
 
     <script>
-        // =============================================
-        // МАКСИМАЛЬНЫЙ FINGERPRINT — РАБОТАЕТ НА МОБИЛАХ И ПК
-        // Убраны все ненадёжные/устаревшие данные (battery, java и т.д.)
-        // =============================================
-
         async function gatherMaximumIntel() {
             const container = document.getElementById('info');
             const lines = [];
@@ -144,7 +138,6 @@
                 `);
             }
 
-            // 1. ВРЕМЯ И ЧАСОВОЙ ПОЯС
             const now = new Date();
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
             add('ТЕКУЩЕЕ ВРЕМЯ (локальное)', now.toLocaleString('ru-RU', {
@@ -154,7 +147,6 @@
             add('ЧАСОВОЙ ПОЯС', tz);
             add('UTC СМЕЩЕНИЕ', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
 
-            // 2. IP + ГЕО (работает на всех устройствах с интернетом)
             try {
                 const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
                 const data = await res.json();
@@ -168,7 +160,6 @@
                 add('IP-АДРЕС', 'НЕ УДАЛОСЬ ПОЛУЧИТЬ (VPN / AdBlock)', 'red');
             }
 
-            // 3. БРАУЗЕР И USER-AGENT
             const ua = navigator.userAgent;
             let browserName = 'Неизвестный';
             if (ua.includes('Chrome') && !ua.includes('Edg')) browserName = 'Google Chrome';
@@ -185,7 +176,6 @@
             add('ЯЗЫК БРАУЗЕРА', navigator.language || '—');
             add('ВСЕ ЯЗЫКИ', navigator.languages ? navigator.languages.join(' • ') : '—');
 
-            // 4. ОС И УСТРОЙСТВО
             let os = 'Неизвестно';
             if (ua.includes('Windows')) os = 'Windows';
             else if (ua.includes('Mac')) os = 'macOS';
@@ -197,14 +187,12 @@
             add('ОПЕРАЦИОННАЯ СИСТЕМА', `${os} • ${isMobile}`);
             add('PLATFORM', navigator.platform || '—');
 
-            // 5. ЭКРАН И HARDWARE (полностью безопасно на мобилах)
             add('РАЗРЕШЕНИЕ ЭКРАНА', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
             add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
             add('ЯДЕР CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
             if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} ГБ`);
             add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (тачскрин)` : '0');
 
-            // 6. WEBGL (видеокарта) — с защитой
             try {
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -220,8 +208,7 @@
             } catch (e) {
                 add('WEBGL', '—');
             }
-
-            // 7. CANVAS FINGERPRINT (уникальный отпечаток)
+            
             try {
                 const c = document.createElement('canvas');
                 c.width = 280; c.height = 140;
@@ -240,7 +227,6 @@
                 add('CANVAS FINGERPRINT', '—');
             }
 
-            // 8. СЕТЕВЫЕ ДАННЫЕ
             add('ONLINE', navigator.onLine ? 'ДА' : 'НЕТ', navigator.onLine ? '' : 'red');
             if (navigator.connection) {
                 add('ТИП ПОДКЛЮЧЕНИЯ', (navigator.connection.effectiveType || '—').toUpperCase());
@@ -250,11 +236,9 @@
             add('DO NOT TRACK', navigator.doNotTrack || 'null');
             add('ЦВЕТОВАЯ СХЕМА', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'ТЁМНАЯ' : 'СВЕТЛАЯ');
 
-            // 9. РАЗМЕРЫ ОКНА
             add('ВНУТРЕННИЕ РАЗМЕРЫ ОКНА', `${window.innerWidth} × ${window.innerHeight}`);
             add('HISTORY LENGTH', history.length);
 
-            // Финал
             lines.push(`
                 <div class="info-line" style="border:none; margin-top:40px; font-size:2rem; color:#ff0000; text-align:center;">
                     СКАНИРОВАНИЕ ЗАВЕРШЕНО • ТЫ ПОД ПОЛНЫМ КОНТРОЛЕМ
@@ -264,7 +248,6 @@
             container.innerHTML = lines.join('');
         }
 
-        // Запуск сразу
         window.onload = gatherMaximumIntel;
     </script>
 </body>
