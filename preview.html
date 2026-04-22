@@ -4,47 +4,59 @@
 <meta charset="UTF-8">
 <title>Химия в медицине</title>
 
+<!-- библиотека для 3D -->
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    overflow: hidden;
-    background: black;
-}
-
-.slide {
-    width: 100vw;
-    height: 100vh;
-    display: none;
-    padding: 40px;
-    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    background: #111;
     color: white;
 }
 
+.slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 50px;
+    box-sizing: border-box;
+}
+
 .active {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 30px;
+    display: flex;
+    flex-direction: column;
 }
 
-h1 {
+.header {
     font-size: 36px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-p {
+.content {
+    display: flex;
+    gap: 40px;
+    flex: 1;
+}
+
+.text {
+    flex: 1.2;
+}
+
+.text ul {
     font-size: 18px;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
-ul {
-    font-size: 18px;
+.model {
+    flex: 1;
 }
 
-iframe {
+model-viewer {
     width: 100%;
-    height: 80%;
-    border-radius: 15px;
+    height: 400px;
+    background: #000;
+    border-radius: 10px;
 }
 
 /* кнопки */
@@ -57,140 +69,125 @@ button {
 
 #next { right: 20px; }
 #prev { left: 20px; }
-
-/* фоны */
-#s1 { background: linear-gradient(45deg,#0f2027,#2c5364); }
-#s2 { background: linear-gradient(45deg,#1c92d2,#f2fcfe); color:black;}
-#s3 { background: linear-gradient(45deg,#ff512f,#dd2476); }
-#s4 { background: linear-gradient(45deg,#00bf8f,#001510); }
-#s5 { background: linear-gradient(45deg,#8360c3,#2ebf91); }
 </style>
 </head>
 
 <body>
 
 <!-- Слайд 1 -->
-<div class="slide active" id="s1">
-<div>
-<h1>Применение химии в медицине</h1>
-<p>
-Химия — одна из ключевых наук, лежащих в основе современной медицины. 
-Она изучает состав веществ, их свойства и превращения, что позволяет 
-разрабатывать лекарства, диагностировать заболевания и понимать процессы, 
-происходящие в организме человека.
-</p>
-
+<div class="slide active">
+<div class="header">Применение химии в медицине</div>
+<div class="content">
+<div class="text">
 <ul>
-<li>Создание лекарственных препаратов</li>
-<li>Изучение биохимических процессов</li>
-<li>Разработка методов диагностики</li>
-<li>Создание новых медицинских технологий</li>
+<li>Химия — основа современной медицины</li>
+<li>Изучает вещества и реакции в организме</li>
+<li>Позволяет создавать лекарства и вакцины</li>
+<li>Используется в диагностике заболеваний</li>
 </ul>
+
+<p>
+Медицина невозможна без химии, так как все процессы в организме 
+представляют собой сложные химические реакции.
+</p>
 </div>
 
-<div>
-<iframe src="https://sketchfab.com/models/YOUR_MODEL/embed"></iframe>
+<div class="model">
+<model-viewer src="models/dna.glb" auto-rotate camera-controls></model-viewer>
+</div>
 </div>
 </div>
 
 <!-- Слайд 2 -->
-<div class="slide" id="s2">
-<div>
-<h1>Роль химии в медицине</h1>
-<p>
-Химия позволяет изучать процессы на молекулярном уровне. 
-Любое заболевание связано с нарушением химических реакций в организме.
-</p>
-
+<div class="slide">
+<div class="header">Роль химии в медицине</div>
+<div class="content">
+<div class="text">
 <ul>
 <li><b>Биохимия</b> — изучает процессы в клетках</li>
-<li><b>Фармакология</b> — изучает действие лекарств</li>
-<li><b>Аналитическая химия</b> — помогает выявлять болезни</li>
+<li><b>Фармацевтика</b> — создание лекарств</li>
+<li><b>Аналитическая химия</b> — диагностика</li>
 </ul>
 
 <p>
-Без химии невозможно было бы создать современные вакцины, антибиотики 
-и методы лечения сложных заболеваний.
+Любая болезнь связана с нарушением химических процессов. 
+Химия помогает выявлять эти нарушения и устранять их.
 </p>
 </div>
 
-<div>
-<iframe src="https://sketchfab.com/models/YOUR_MODEL/embed"></iframe>
+<div class="model">
+<model-viewer src="models/cell.glb" auto-rotate camera-controls></model-viewer>
+</div>
 </div>
 </div>
 
 <!-- Слайд 3 -->
-<div class="slide" id="s3">
-<div>
-<h1>Создание лекарств</h1>
-<p>
-Разработка лекарств — сложный процесс, который может занимать более 10 лет.
-</p>
-
+<div class="slide">
+<div class="header">Создание лекарств</div>
+<div class="content">
+<div class="text">
 <ul>
-<li>Поиск активного вещества</li>
-<li>Лабораторные исследования</li>
+<li>Поиск активных веществ</li>
+<li>Исследование структуры молекул</li>
 <li>Клинические испытания</li>
-<li>Проверка безопасности</li>
+<li>Проверка эффективности и безопасности</li>
 </ul>
 
 <p>
-Лекарства воздействуют на биохимические процессы, блокируя или усиливая 
-определённые реакции в организме.
+Разработка одного лекарства может занимать более 10 лет 
+и требует участия химиков, биологов и врачей.
 </p>
 </div>
 
-<div>
-<iframe src="https://sketchfab.com/models/YOUR_MODEL/embed"></iframe>
+<div class="model">
+<model-viewer src="models/aspirin.glb" auto-rotate camera-controls></model-viewer>
+</div>
 </div>
 </div>
 
 <!-- Слайд 4 -->
-<div class="slide" id="s4">
-<div>
-<h1>Биохимия организма</h1>
-<p>
-Организм человека — это сложная система химических реакций.
-</p>
-
+<div class="slide">
+<div class="header">Биохимия организма</div>
+<div class="content">
+<div class="text">
 <ul>
-<li><b>ДНК</b> — хранит генетическую информацию</li>
-<li><b>Белки</b> — выполняют функции клеток</li>
-<li><b>Ферменты</b> — ускоряют реакции</li>
+<li>ДНК — хранит генетическую информацию</li>
+<li>Белки — выполняют функции клеток</li>
+<li>Ферменты — ускоряют реакции</li>
 </ul>
 
 <p>
-Все процессы: дыхание, питание, движение — происходят благодаря химическим реакциям.
+Все процессы в организме — дыхание, питание, движение — 
+основаны на химических реакциях.
 </p>
 </div>
 
-<div>
-<iframe src="https://sketchfab.com/models/YOUR_MODEL/embed"></iframe>
+<div class="model">
+<model-viewer src="models/protein.glb" auto-rotate camera-controls></model-viewer>
+</div>
 </div>
 </div>
 
 <!-- Слайд 5 -->
-<div class="slide" id="s5">
-<div>
-<h1>Будущее медицины</h1>
-<p>
-Современная химия открывает новые возможности лечения заболеваний.
-</p>
-
+<div class="slide">
+<div class="header">Будущее медицины</div>
+<div class="content">
+<div class="text">
 <ul>
 <li>Нанотехнологии</li>
 <li>Генная терапия</li>
-<li>Персонализированная медицина</li>
+<li>Персонализированное лечение</li>
 </ul>
 
 <p>
-В будущем лечение будет подбираться индивидуально для каждого человека 
-на основе его генетических данных.
+Современная химия открывает возможности создания лекарств, 
+которые действуют точечно и эффективно.
 </p>
 </div>
 
-<div>
-<iframe src="https://sketchfab.com/models/YOUR_MODEL/embed"></iframe>
+<div class="model">
+<model-viewer src="models/nano.glb" auto-rotate camera-controls></model-viewer>
+</div>
 </div>
 </div>
 
@@ -202,9 +199,9 @@ let slides = document.querySelectorAll('.slide');
 let index = 0;
 
 function showSlide(i){
-    slides[index].classList.remove('active');
+    slides[index].style.display = "none";
     index = (i + slides.length) % slides.length;
-    slides[index].classList.add('active');
+    slides[index].style.display = "flex";
 }
 
 function next(){ showSlide(index + 1); }
