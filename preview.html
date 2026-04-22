@@ -4,48 +4,44 @@
 <meta charset="UTF-8">
 <title>Химия в медицине</title>
 
-<!-- библиотека для 3D -->
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 <style>
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #111;
+    background: #0f172a;
     color: white;
 }
 
-.slide {
-    display: none;
-    width: 100vw;
-    height: 100vh;
-    padding: 50px;
-    box-sizing: border-box;
+section {
+    padding: 60px 10%;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.active {
-    display: flex;
-    flex-direction: column;
-}
-
-.header {
-    font-size: 36px;
+h1 {
+    font-size: 42px;
     margin-bottom: 20px;
 }
 
-.content {
+h2 {
+    font-size: 30px;
+    margin-bottom: 15px;
+}
+
+p, li {
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.grid {
     display: flex;
     gap: 40px;
-    flex: 1;
+    margin-top: 20px;
 }
 
 .text {
     flex: 1.2;
-}
-
-.text ul {
-    font-size: 18px;
-    line-height: 1.6;
 }
 
 .model {
@@ -54,159 +50,191 @@ body {
 
 model-viewer {
     width: 100%;
-    height: 400px;
-    background: #000;
-    border-radius: 10px;
+    height: 350px;
+    background: black;
+    border-radius: 12px;
 }
 
-/* кнопки */
-button {
-    position: fixed;
-    bottom: 20px;
-    padding: 10px 20px;
-    font-size: 18px;
+/* красиво */
+.card {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
 }
-
-#next { right: 20px; }
-#prev { left: 20px; }
 </style>
 </head>
 
 <body>
 
-<!-- Слайд 1 -->
-<div class="slide active">
-<div class="header">Применение химии в медицине</div>
-<div class="content">
+<section>
+<h1>Применение химии в медицине</h1>
+<p>
+Химия является одной из важнейших наук, лежащих в основе современной медицины. 
+Она изучает состав веществ, их свойства и превращения, что позволяет понимать 
+процессы, происходящие в организме человека, а также создавать эффективные методы лечения.
+</p>
+
+<div class="grid">
 <div class="text">
 <ul>
-<li>Химия — основа современной медицины</li>
-<li>Изучает вещества и реакции в организме</li>
-<li>Позволяет создавать лекарства и вакцины</li>
-<li>Используется в диагностике заболеваний</li>
+<li>Создание лекарственных препаратов</li>
+<li>Изучение биохимических процессов</li>
+<li>Диагностика заболеваний</li>
+<li>Разработка новых технологий лечения</li>
 </ul>
-
-<p>
-Медицина невозможна без химии, так как все процессы в организме 
-представляют собой сложные химические реакции.
-</p>
 </div>
 
 <div class="model">
 <model-viewer src="models/dna.glb" auto-rotate camera-controls></model-viewer>
 </div>
 </div>
+</section>
+
+<section>
+<h2>Роль химии в медицине</h2>
+
+<div class="grid">
+<div class="text">
+
+<div class="card">
+<b>Биохимия</b> — изучает химические процессы внутри клеток и тканей организма.
 </div>
 
-<!-- Слайд 2 -->
-<div class="slide">
-<div class="header">Роль химии в медицине</div>
-<div class="content">
-<div class="text">
-<ul>
-<li><b>Биохимия</b> — изучает процессы в клетках</li>
-<li><b>Фармацевтика</b> — создание лекарств</li>
-<li><b>Аналитическая химия</b> — диагностика</li>
-</ul>
+<div class="card">
+<b>Фармацевтическая химия</b> — занимается разработкой и производством лекарств.
+</div>
+
+<div class="card">
+<b>Аналитическая химия</b> — используется для диагностики заболеваний.
+</div>
 
 <p>
-Любая болезнь связана с нарушением химических процессов. 
-Химия помогает выявлять эти нарушения и устранять их.
+Химия позволяет выявлять причины заболеваний на молекулярном уровне 
+и находить способы их лечения.
 </p>
+
 </div>
 
 <div class="model">
 <model-viewer src="models/cell.glb" auto-rotate camera-controls></model-viewer>
 </div>
 </div>
-</div>
+</section>
 
-<!-- Слайд 3 -->
-<div class="slide">
-<div class="header">Создание лекарств</div>
-<div class="content">
+<section>
+<h2>Создание лекарств</h2>
+
+<div class="grid">
 <div class="text">
+
+<p>
+Процесс разработки лекарств включает несколько этапов:
+</p>
+
 <ul>
-<li>Поиск активных веществ</li>
-<li>Исследование структуры молекул</li>
+<li>Поиск активных химических соединений</li>
+<li>Изучение структуры молекул</li>
+<li>Лабораторные исследования</li>
 <li>Клинические испытания</li>
-<li>Проверка эффективности и безопасности</li>
+<li>Проверка безопасности и эффективности</li>
 </ul>
 
 <p>
-Разработка одного лекарства может занимать более 10 лет 
-и требует участия химиков, биологов и врачей.
+Разработка одного препарата может занимать более 10 лет 
+и требует значительных научных и финансовых ресурсов.
 </p>
+
 </div>
 
 <div class="model">
 <model-viewer src="models/aspirin.glb" auto-rotate camera-controls></model-viewer>
 </div>
 </div>
-</div>
+</section>
 
-<!-- Слайд 4 -->
-<div class="slide">
-<div class="header">Биохимия организма</div>
-<div class="content">
+<section>
+<h2>Биохимия организма</h2>
+
+<div class="grid">
 <div class="text">
+
 <ul>
-<li>ДНК — хранит генетическую информацию</li>
-<li>Белки — выполняют функции клеток</li>
-<li>Ферменты — ускоряют реакции</li>
+<li><b>ДНК</b> хранит генетическую информацию</li>
+<li><b>Белки</b> выполняют структурные и функциональные роли</li>
+<li><b>Ферменты</b> ускоряют химические реакции</li>
 </ul>
 
 <p>
-Все процессы в организме — дыхание, питание, движение — 
+Все жизненные процессы — дыхание, пищеварение, движение — 
 основаны на химических реакциях.
 </p>
+
+<p>
+Нарушения этих процессов приводят к заболеваниям.
+</p>
+
 </div>
 
 <div class="model">
 <model-viewer src="models/protein.glb" auto-rotate camera-controls></model-viewer>
 </div>
 </div>
-</div>
+</section>
 
-<!-- Слайд 5 -->
-<div class="slide">
-<div class="header">Будущее медицины</div>
-<div class="content">
+<section>
+<h2>Современные технологии</h2>
+
+<div class="grid">
 <div class="text">
+
 <ul>
-<li>Нанотехнологии</li>
-<li>Генная терапия</li>
-<li>Персонализированное лечение</li>
+<li>Наночастицы для доставки лекарств</li>
+<li>Таргетная терапия</li>
+<li>Биосенсоры</li>
 </ul>
 
 <p>
-Современная химия открывает возможности создания лекарств, 
-которые действуют точечно и эффективно.
+Современная химия позволяет создавать лекарства, которые 
+действуют точечно и уменьшают побочные эффекты.
 </p>
+
 </div>
 
 <div class="model">
 <model-viewer src="models/nano.glb" auto-rotate camera-controls></model-viewer>
 </div>
 </div>
+</section>
+
+<section>
+<h2>Будущее медицины</h2>
+
+<div class="grid">
+<div class="text">
+
+<ul>
+<li>Персонализированная медицина</li>
+<li>Генная терапия</li>
+<li>Искусственные органы</li>
+</ul>
+
+<p>
+В будущем лечение будет подбираться индивидуально для каждого человека 
+на основе его генетических особенностей.
+</p>
+
+<p>
+Химия продолжит играть ключевую роль в развитии медицины.
+</p>
+
 </div>
 
-<button id="prev" onclick="prev()">←</button>
-<button id="next" onclick="next()">→</button>
-
-<script>
-let slides = document.querySelectorAll('.slide');
-let index = 0;
-
-function showSlide(i){
-    slides[index].style.display = "none";
-    index = (i + slides.length) % slides.length;
-    slides[index].style.display = "flex";
-}
-
-function next(){ showSlide(index + 1); }
-function prev(){ showSlide(index - 1); }
-</script>
+<div class="model">
+<model-viewer src="models/dna.glb" auto-rotate camera-controls></model-viewer>
+</div>
+</div>
+</section>
 
 </body>
 </html>
