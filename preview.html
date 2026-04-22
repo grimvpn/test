@@ -10,17 +10,17 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
+    background: #f5f7fb;
+    color: #222;
 }
 
 section {
     padding: 60px 10%;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid #ddd;
 }
 
 h1 {
-    font-size: 42px;
+    font-size: 40px;
     margin-bottom: 20px;
 }
 
@@ -38,29 +38,47 @@ p, li {
     display: flex;
     gap: 40px;
     margin-top: 20px;
+    align-items: center;
 }
 
 .text {
     flex: 1.2;
 }
 
-.model {
+.visual {
     flex: 1;
 }
 
-model-viewer {
+/* Заглушка вместо модели */
+.placeholder {
     width: 100%;
-    height: 350px;
-    background: black;
+    height: 300px;
     border-radius: 12px;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #1e3a8a;
+    text-align: center;
+    padding: 20px;
 }
 
-/* красиво */
+/* если появится модель */
+model-viewer {
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    background: transparent;
+}
+
+/* карточки */
 .card {
-    background: rgba(255,255,255,0.05);
+    background: white;
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 </style>
 </head>
@@ -70,23 +88,23 @@ model-viewer {
 <section>
 <h1>Применение химии в медицине</h1>
 <p>
-Химия является одной из важнейших наук, лежащих в основе современной медицины. 
-Она изучает состав веществ, их свойства и превращения, что позволяет понимать 
-процессы, происходящие в организме человека, а также создавать эффективные методы лечения.
+Химия играет ключевую роль в развитии современной медицины. 
+Она изучает вещества, их свойства и превращения, что позволяет 
+понимать процессы в организме человека и создавать методы лечения заболеваний.
 </p>
 
 <div class="grid">
 <div class="text">
 <ul>
-<li>Создание лекарственных препаратов</li>
-<li>Изучение биохимических процессов</li>
+<li>Разработка лекарственных препаратов</li>
+<li>Изучение процессов в организме</li>
 <li>Диагностика заболеваний</li>
-<li>Разработка новых технологий лечения</li>
+<li>Создание медицинских технологий</li>
 </ul>
 </div>
 
-<div class="model">
-<model-viewer src="models/dna.glb" auto-rotate camera-controls></model-viewer>
+<div class="visual">
+<div class="placeholder">Модель ДНК<br>(можно вставить 3D)</div>
 </div>
 </div>
 </section>
@@ -98,26 +116,25 @@ model-viewer {
 <div class="text">
 
 <div class="card">
-<b>Биохимия</b> — изучает химические процессы внутри клеток и тканей организма.
+<b>Биохимия</b> — изучает химические процессы в клетках организма.
 </div>
 
 <div class="card">
-<b>Фармацевтическая химия</b> — занимается разработкой и производством лекарств.
+<b>Фармацевтическая химия</b> — создание лекарств.
 </div>
 
 <div class="card">
-<b>Аналитическая химия</b> — используется для диагностики заболеваний.
+<b>Аналитическая химия</b> — диагностика заболеваний.
 </div>
 
 <p>
-Химия позволяет выявлять причины заболеваний на молекулярном уровне 
-и находить способы их лечения.
+Химия позволяет изучать организм на молекулярном уровне и выявлять причины болезней.
 </p>
 
 </div>
 
-<div class="model">
-<model-viewer src="models/cell.glb" auto-rotate camera-controls></model-viewer>
+<div class="visual">
+<div class="placeholder">Клетка человека<br>(3D модель)</div>
 </div>
 </div>
 </section>
@@ -128,27 +145,24 @@ model-viewer {
 <div class="grid">
 <div class="text">
 
-<p>
-Процесс разработки лекарств включает несколько этапов:
-</p>
+<p>Процесс разработки лекарств включает:</p>
 
 <ul>
-<li>Поиск активных химических соединений</li>
-<li>Изучение структуры молекул</li>
-<li>Лабораторные исследования</li>
-<li>Клинические испытания</li>
-<li>Проверка безопасности и эффективности</li>
+<li>Поиск активных веществ</li>
+<li>Исследование молекул</li>
+<li>Лабораторные испытания</li>
+<li>Клинические тесты</li>
+<li>Проверку безопасности</li>
 </ul>
 
 <p>
-Разработка одного препарата может занимать более 10 лет 
-и требует значительных научных и финансовых ресурсов.
+Разработка одного препарата может занимать более 10 лет.
 </p>
 
 </div>
 
-<div class="model">
-<model-viewer src="models/aspirin.glb" auto-rotate camera-controls></model-viewer>
+<div class="visual">
+<div class="placeholder">Молекула лекарства<br>(например, аспирин)</div>
 </div>
 </div>
 </section>
@@ -160,24 +174,19 @@ model-viewer {
 <div class="text">
 
 <ul>
-<li><b>ДНК</b> хранит генетическую информацию</li>
-<li><b>Белки</b> выполняют структурные и функциональные роли</li>
-<li><b>Ферменты</b> ускоряют химические реакции</li>
+<li><b>ДНК</b> — хранит информацию</li>
+<li><b>Белки</b> — выполняют функции</li>
+<li><b>Ферменты</b> — ускоряют реакции</li>
 </ul>
 
 <p>
-Все жизненные процессы — дыхание, пищеварение, движение — 
-основаны на химических реакциях.
-</p>
-
-<p>
-Нарушения этих процессов приводят к заболеваниям.
+Все процессы в организме основаны на химических реакциях.
 </p>
 
 </div>
 
-<div class="model">
-<model-viewer src="models/protein.glb" auto-rotate camera-controls></model-viewer>
+<div class="visual">
+<div class="placeholder">Белки / ферменты<br>(3D модель)</div>
 </div>
 </div>
 </section>
@@ -189,20 +198,19 @@ model-viewer {
 <div class="text">
 
 <ul>
-<li>Наночастицы для доставки лекарств</li>
+<li>Наночастицы</li>
 <li>Таргетная терапия</li>
 <li>Биосенсоры</li>
 </ul>
 
 <p>
-Современная химия позволяет создавать лекарства, которые 
-действуют точечно и уменьшают побочные эффекты.
+Химия позволяет создавать точные методы лечения с минимальными побочными эффектами.
 </p>
 
 </div>
 
-<div class="model">
-<model-viewer src="models/nano.glb" auto-rotate camera-controls></model-viewer>
+<div class="visual">
+<div class="placeholder">Нанотехнологии<br>(3D модель)</div>
 </div>
 </div>
 </section>
@@ -214,24 +222,19 @@ model-viewer {
 <div class="text">
 
 <ul>
-<li>Персонализированная медицина</li>
 <li>Генная терапия</li>
+<li>Персонализированное лечение</li>
 <li>Искусственные органы</li>
 </ul>
 
 <p>
-В будущем лечение будет подбираться индивидуально для каждого человека 
-на основе его генетических особенностей.
-</p>
-
-<p>
-Химия продолжит играть ключевую роль в развитии медицины.
+В будущем медицина станет более точной и индивидуальной благодаря развитию химии.
 </p>
 
 </div>
 
-<div class="model">
-<model-viewer src="models/dna.glb" auto-rotate camera-controls></model-viewer>
+<div class="visual">
+<div class="placeholder">Будущие технологии</div>
 </div>
 </div>
 </section>
