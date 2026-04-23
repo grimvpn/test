@@ -156,7 +156,7 @@
                 add('Provider', data.org || '—');
                 add('Latitude / Longitude', `${data.latitude || '?'} / ${data.longitude || '?'}`);
             } catch (e) {
-                add('IP-АДРЕС', 'НЕ УДАЛОСЬ ПОЛУЧИТЬ', 'red');
+                add('IP-АДРЕС', 'unknown', 'red');
             }
 
             const ua = navigator.userAgent;
@@ -182,15 +182,15 @@
             else if (ua.includes('Android')) os = 'Android';
             else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS / iPadOS';
 
-            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'МОБИЛЬНОЕ' : 'ДЕСКТОП';
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'Mobile' : 'Desktop';
             add('OS', `${os} • ${isMobile}`);
             add('PLATFORM', navigator.platform || '—');
 
             add('Permission', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
             add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
-            add('Processor cores CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
+            add('Processor cores CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} core` : '—');
             if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} ГБ`);
-            add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (тачскрин)` : '0');
+            add('TOUCH POINTS', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (touchscreen)` : '0');
 
             try {
                 const canvas = document.createElement('canvas');
