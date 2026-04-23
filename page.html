@@ -13,21 +13,20 @@ body {
   font-size:18px;
 }
 
-h1 { margin-bottom:10px; }
+h1 { margin-bottom:15px; }
 
 .topbar {
-  margin-bottom:20px;
   display:flex;
   gap:10px;
-  align-items:center;
+  margin-bottom:20px;
 }
 
 input {
+  flex:1;
   background:#161b22;
   border:1px solid #30363d;
   color:#c9d1d9;
-  padding:8px;
-  width:420px;
+  padding:10px;
   border-radius:6px;
 }
 
@@ -35,7 +34,7 @@ button {
   background:#238636;
   border:none;
   color:white;
-  padding:8px 12px;
+  padding:10px 14px;
   border-radius:6px;
   cursor:pointer;
 }
@@ -92,9 +91,7 @@ a {
   display:none;
 }
 
-.date.open {
-  display:block;
-}
+.date.open { display:block; }
 </style>
 </head>
 
@@ -103,8 +100,8 @@ a {
 <h1>Файлы</h1>
 
 <div class="topbar">
-  <input id="token" placeholder="GitHub token (можно оставить пустым)">
-  <button onclick="saveToken()">Сохранить</button>
+  <input id="search" placeholder="Поиск файлов...">
+  <button onclick="applySearch()">Найти</button>
 </div>
 
 <div id="files">Загрузка...</div>
@@ -114,26 +111,20 @@ const USER = "grimvpn";
 const REPO = "test";
 const PATH = "";
 
+// 🔑 токен (без UI)
 function getToken() {
   return localStorage.getItem("gh_token") || "";
 }
 
-function saveToken() {
-  const val = document.getElementById("token").value;
-  localStorage.setItem("gh_token", val);
-  loadFiles();
-}
-
 async function api(url) {
-  const token = getToken();
-
   const headers = {};
-  if (token) {
-    headers["Authorization"] = "Bearer " + token;
-  }
+  const token = getToken();
+  if (token) headers["Authorization"] = "Bearer " + token;
 
   return fetch(url, { headers });
 }
+
+let allFiles = [];
 
 async function getFileDate(path) {
   try {
@@ -164,6 +155,66 @@ function viewFile(url) {
   window.open(url, "_blank");
 }
 
+function render(files) {
+  const container = document.getElementById("files");
+  container.innerHTML = "";
+
+  files.forEach(file => {
+    const id = "d" + Math.random();
+
+    const div = document.createElement("div");
+    div.className = "file";
+
+    div.innerHTML = `
+      <div class="left">
+        <img src="file.svg" class="icon">
+
+        <a href="#" onclick="downloadFile('${file.download_url}','${file.name}');return false;">
+          ${file.name}
+        </a>
+
+        <img src="download.svg" class="download"
+             onclick="downloadFile('${file.download_url}','${file.name}')">
+
+        <img src="view.svg" class="view"
+             onclick="viewFile('${file.download_url}')">
+      </div>
+
+      <div class="right">
+        <div id="${id}" class="date">
+          ${file.date.toLocaleString()}
+        </div>
+
+        <span class="toggle" onclick="toggleDate('${id}', this)">▶</span>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function toggleDate(id, el) {
+  const d = document.getElementById(id);
+  d.classList.toggle("open");
+  el.textContent = d.classList.contains("open") ? "▼" : "▶";
+}
+
+// 🔍 поиск
+function applySearch() {
+  const q = document.getElementById("search").value.toLowerCase();
+
+  const filtered = allFiles.filter(f =>
+    f.name.toLowerCase().includes(q)
+  );
+
+  render(filtered);
+}
+
+// Enter = поиск
+document.getElementById("search").addEventListener("keydown", e => {
+  if (e.key === "Enter") applySearch();
+});
+
 async function loadFiles() {
   const container = document.getElementById("files");
 
@@ -181,64 +232,22 @@ async function loadFiles() {
       f.name !== "view.svg"
     );
 
-    const filesWithDates = await Promise.all(
+    allFiles = await Promise.all(
       files.map(async file => ({
         ...file,
         date: await getFileDate(file.path)
       }))
     );
 
-    filesWithDates.sort((a,b)=>b.date-a.date);
+    allFiles.sort((a,b)=>b.date-a.date);
 
-    container.innerHTML = "";
-
-    filesWithDates.forEach(file => {
-      const div = document.createElement("div");
-      div.className = "file";
-
-      const id = "d" + Math.random();
-
-      div.innerHTML = `
-        <div class="left">
-          <img src="file.svg" class="icon">
-
-          <a href="#" onclick="downloadFile('${file.download_url}','${file.name}');return false;">
-            ${file.name}
-          </a>
-
-          <img src="download.svg" class="download"
-               onclick="downloadFile('${file.download_url}','${file.name}')">
-
-          <img src="view.svg" class="view"
-               onclick="viewFile('${file.download_url}')">
-        </div>
-
-        <div class="right">
-          <div id="${id}" class="date">
-            ${file.date.toLocaleString()}
-          </div>
-
-          <span class="toggle" onclick="toggleDate('${id}', this)">▶</span>
-        </div>
-      `;
-
-      container.appendChild(div);
-    });
+    render(allFiles);
 
   } catch (e) {
     console.error(e);
     container.innerHTML = "Ошибка загрузки";
   }
 }
-
-function toggleDate(id, el) {
-  const d = document.getElementById(id);
-  d.classList.toggle("open");
-  el.textContent = d.classList.contains("open") ? "▼" : "▶";
-}
-
-// загрузка токена в поле
-document.getElementById("token").value = getToken();
 
 loadFiles();
 </script>
