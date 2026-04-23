@@ -188,8 +188,8 @@
 
             add('Permission', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} bit)`);
             add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
-            add('Processor cores CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} core` : '—');
-            if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} GB`);
+            add('CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} core` : '—');
+            if (navigator.deviceMemory) add('RAM', `${navigator.deviceMemory} GB`);
             add('TOUCH POINTS', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (touchscreen)` : '0');
 
             try {
