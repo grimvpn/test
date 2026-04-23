@@ -1,59 +1,39 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Файлы</title>
+<meta charset="UTF-8">
+<title>Файлы</title>
 
-  <style>
-    body {
-      background: #0d1117;
-      color: #c9d1d9;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 30px;
-    }
+<style>
+body {
+  background:#0d1117;
+  color:#c9d1d9;
+  font-family:Arial;
+  padding:30px;
+}
 
-    h1 {
-      margin-bottom: 20px;
-    }
+.file {
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  border-bottom:1px solid #30363d;
+}
 
-    .file {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px;
-      border-bottom: 1px solid #30363d;
-      transition: 0.2s;
-    }
+.file:hover {
+  background:#161b22;
+}
 
-    .file:hover {
-      background: #161b22;
-    }
+.left {
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
 
-    .left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    img {
-      width: 20px;
-    }
-
-    a {
-      color: #58a6ff;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .date {
-      font-size: 12px;
-      color: #8b949e;
-    }
-  </style>
+a {
+  color:#58a6ff;
+  text-decoration:none;
+}
+</style>
 </head>
 
 <body>
@@ -62,69 +42,75 @@
 <div id="files">Загрузка...</div>
 
 <script>
-  const USER = "grimvpn";
-  const REPO = "test";
-  const PATH = "main"; // например "files"
+const USER = "grimvpn";
+const REPO = "test";
+const PATH = "";
 
-  async function getFileDate(path) {
+async function getFileDate(path) {
+  try {
     const res = await fetch(
       `https://api.github.com/repos/${USER}/${REPO}/commits?path=${path}&per_page=1`
     );
     const data = await res.json();
+
+    if (!data || !data.length) return new Date(0);
+
     return new Date(data[0].commit.committer.date);
+  } catch {
+    return new Date(0);
   }
+}
 
-  async function loadFiles() {
-    const container = document.getElementById("files");
-    container.innerHTML = "Загрузка...";
+async function loadFiles() {
+  const container = document.getElementById("files");
 
-    try {
-      const res = await fetch(
-        `https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`
-      );
-      const data = await res.json();
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`
+    );
 
-      const files = data.filter(item => item.type === "file");
-
-      const filesWithDates = await Promise.all(
-        files.map(async file => ({
-          ...file,
-          date: await getFileDate(file.path)
-        }))
-      );
-
-      filesWithDates.sort((a, b) => b.date - a.date);
-
-      container.innerHTML = "";
-
-      for (const file of filesWithDates) {
-        const div = document.createElement("div");
-        div.className = "file";
-
-        const formattedDate = file.date.toLocaleString();
-
-        div.innerHTML = `
-          <div class="left">
-            <img src="file.svg">
-            <a href="${file.download_url}" download>${file.name}</a>
-          </div>
-          <div class="date">${formattedDate}</div>
-        `;
-
-        container.appendChild(div);
-      }
-
-      if (filesWithDates.length === 0) {
-        container.innerHTML = "Нет файлов";
-      }
-
-    } catch (e) {
-      container.innerHTML = "Ошибка загрузки";
-      console.error(e);
+    if (!res.ok) {
+      container.innerHTML = "Ошибка API";
+      return;
     }
-  }
 
-  loadFiles();
+    const data = await res.json();
+
+    const files = data.filter(f => f.type === "file");
+
+    const filesWithDates = await Promise.all(
+      files.map(async file => ({
+        ...file,
+        date: await getFileDate(file.path)
+      }))
+    );
+
+    filesWithDates.sort((a,b)=>b.date-a.date);
+
+    container.innerHTML = "";
+
+    filesWithDates.forEach(file => {
+      const div = document.createElement("div");
+      div.className = "file";
+
+      div.innerHTML = `
+        <div class="left">
+          <img src="file.svg" width="20">
+          <a href="${file.download_url}" download>${file.name}</a>
+        </div>
+        <div>${file.date.toLocaleString()}</div>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = "Ошибка загрузки";
+  }
+}
+
+loadFiles();
 </script>
 
 </body>
