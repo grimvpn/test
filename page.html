@@ -16,30 +16,17 @@ body {
 h1 { margin-bottom:15px; }
 
 .topbar {
-  display:flex;
-  gap:10px;
   margin-bottom:20px;
 }
 
 input {
-  flex:1;
+  width:100%;
   background:#161b22;
   border:1px solid #30363d;
   color:#c9d1d9;
   padding:10px;
   border-radius:6px;
 }
-
-button {
-  background:#238636;
-  border:none;
-  color:white;
-  padding:10px 14px;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-button:hover { opacity:0.9; }
 
 .file {
   display:flex;
@@ -101,7 +88,6 @@ a {
 
 <div class="topbar">
   <input id="search" placeholder="Поиск файлов...">
-  <button onclick="applySearch()">Найти</button>
 </div>
 
 <div id="files">Загрузка...</div>
@@ -111,16 +97,14 @@ const USER = "grimvpn";
 const REPO = "test";
 const PATH = "";
 
-// 🔑 токен (без UI)
-function getToken() {
-  return localStorage.getItem("gh_token") || "";
-}
+/* 🔑 ТОКЕН ТУТ (В КОДЕ, НЕ В UI) */
+const GITHUB_TOKEN = ""; // <-- вставь сюда токен при необходимости
 
 async function api(url) {
   const headers = {};
-  const token = getToken();
-  if (token) headers["Authorization"] = "Bearer " + token;
-
+  if (GITHUB_TOKEN) {
+    headers["Authorization"] = "Bearer " + GITHUB_TOKEN;
+  }
   return fetch(url, { headers });
 }
 
@@ -143,17 +127,34 @@ async function downloadFile(url, name) {
   const res = await fetch(url);
   const blob = await res.blob();
 
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = name;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 function viewFile(url) {
   window.open(url, "_blank");
 }
+
+function toggleDate(id, el) {
+  const d = document.getElementById(id);
+  d.classList.toggle("open");
+  el.textContent = d.classList.contains("open") ? "▼" : "▶";
+}
+
+/* 🔍 LIVE SEARCH */
+document.getElementById("search").addEventListener("input", () => {
+  const q = document.getElementById("search").value.toLowerCase();
+
+  const filtered = allFiles.filter(f =>
+    f.name.toLowerCase().includes(q)
+  );
+
+  render(filtered);
+});
 
 function render(files) {
   const container = document.getElementById("files");
@@ -193,60 +194,30 @@ function render(files) {
   });
 }
 
-function toggleDate(id, el) {
-  const d = document.getElementById(id);
-  d.classList.toggle("open");
-  el.textContent = d.classList.contains("open") ? "▼" : "▶";
-}
-
-// 🔍 поиск
-function applySearch() {
-  const q = document.getElementById("search").value.toLowerCase();
-
-  const filtered = allFiles.filter(f =>
-    f.name.toLowerCase().includes(q)
+async function loadFiles() {
+  const res = await api(
+    `https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`
   );
 
-  render(filtered);
-}
+  const data = await res.json();
 
-// Enter = поиск
-document.getElementById("search").addEventListener("keydown", e => {
-  if (e.key === "Enter") applySearch();
-});
+  let files = data.filter(f =>
+    f.type === "file" &&
+    f.name !== "file.svg" &&
+    f.name !== "download.svg" &&
+    f.name !== "view.svg"
+  );
 
-async function loadFiles() {
-  const container = document.getElementById("files");
+  allFiles = await Promise.all(
+    files.map(async file => ({
+      ...file,
+      date: await getFileDate(file.path)
+    }))
+  );
 
-  try {
-    const res = await api(
-      `https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`
-    );
+  allFiles.sort((a,b)=>b.date-a.date);
 
-    const data = await res.json();
-
-    let files = data.filter(f =>
-      f.type === "file" &&
-      f.name !== "file.svg" &&
-      f.name !== "download.svg" &&
-      f.name !== "view.svg"
-    );
-
-    allFiles = await Promise.all(
-      files.map(async file => ({
-        ...file,
-        date: await getFileDate(file.path)
-      }))
-    );
-
-    allFiles.sort((a,b)=>b.date-a.date);
-
-    render(allFiles);
-
-  } catch (e) {
-    console.error(e);
-    container.innerHTML = "Ошибка загрузки";
-  }
+  render(allFiles);
 }
 
 loadFiles();
