@@ -233,7 +233,7 @@
             }
             add('COOKIES', navigator.cookieEnabled ? 'РАЗРЕШЕНЫ' : 'ЗАБЛОКИРОВАНЫ');
             add('DO NOT TRACK', navigator.doNotTrack || 'null');
-            add('ЦВЕТОВАЯ СХЕМА', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'ТЁМНАЯ' : 'СВЕТЛАЯ');
+            add('Theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light');
 
             add('ВНУТРЕННИЕ РАЗМЕРЫ ОКНА', `${window.innerWidth} × ${window.innerHeight}`);
             add('HISTORY LENGTH', history.length);
