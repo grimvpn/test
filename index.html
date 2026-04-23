@@ -139,28 +139,28 @@
 
             const now = new Date();
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
-            add('ТЕКУЩЕЕ ВРЕМЯ', now.toLocaleString('ru-RU', {
+            add('Date / Time', now.toLocaleString('ru-RU', {
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }));
-            add('ЧАСОВОЙ ПОЯС', tz);
-            add('UTC СМЕЩЕНИЕ', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
+            add('Time zone', tz);
+            add('UTC', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
 
             try {
                 const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
                 const data = await res.json();
                 
-                add('IP-АДРЕС', data.ip, 'red');
-                add('СТРАНА', `${data.country_name || '—'} (${data.country_code || '—'})`);
-                add('ГОРОД / РЕГИОН', `${data.city || '—'}, ${data.region || '—'}`);
-                add('ПРОВАЙДЕР', data.org || '—');
-                add('ШИРОТА / ДОЛГОТА', `${data.latitude || '?'} / ${data.longitude || '?'}`);
+                add('IP-Address', data.ip, 'red');
+                add('Country', `${data.country_name || '—'} (${data.country_code || '—'})`);
+                add('Rity / Region', `${data.city || '—'}, ${data.region || '—'}`);
+                add('Provider', data.org || '—');
+                add('Latitude / Longitude', `${data.latitude || '?'} / ${data.longitude || '?'}`);
             } catch (e) {
                 add('IP-АДРЕС', 'НЕ УДАЛОСЬ ПОЛУЧИТЬ', 'red');
             }
 
             const ua = navigator.userAgent;
-            let browserName = 'Неизвестный';
+            let browserName = 'unknown';
             if (ua.includes('Chrome') && !ua.includes('Edg')) browserName = 'Google Chrome';
             else if (ua.includes('Edg')) browserName = 'Microsoft Edge';
             else if (ua.includes('Firefox')) browserName = 'Mozilla Firefox';
@@ -172,8 +172,8 @@
 
             add('Browser', `${browserName} ${version}`);
             add('FULL USER-AGENT', ua);
-            add('ЯЗЫК БРАУЗЕРА', navigator.language || '—');
-            add('ВСЕ ЯЗЫКИ', navigator.languages ? navigator.languages.join(' • ') : '—');
+            add('Language', navigator.language || '—');
+            add('All languages', navigator.languages ? navigator.languages.join(' • ') : '—');
 
             let os = 'Неизвестно';
             if (ua.includes('Windows')) os = 'Windows';
@@ -186,9 +186,9 @@
             add('OS', `${os} • ${isMobile}`);
             add('PLATFORM', navigator.platform || '—');
 
-            add('РАЗРЕШЕНИЕ ЭКРАНА', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
+            add('Permission', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
             add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
-            add('CORES CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
+            add('Processor cores CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
             if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} ГБ`);
             add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (тачскрин)` : '0');
 
@@ -202,7 +202,7 @@
                     add('WEBGL VENDOR', vendor);
                     add('WEBGL RENDERER (GPU)', renderer);
                 } else {
-                    add('WEBGL', 'НЕ ПОДДЕРЖИВАЕТСЯ');
+                    add('WEBGL', 'NOT SUPPORTED');
                 }
             } catch (e) {
                 add('WEBGL', '—');
