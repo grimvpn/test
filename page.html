@@ -97,8 +97,8 @@ const USER = "grimvpn";
 const REPO = "test";
 const PATH = "";
 
-/* 🔑 ТОКЕН ТУТ (В КОДЕ, НЕ В UI) */
-const GITHUB_TOKEN = ""; // <-- вставь сюда токен при необходимости
+/* 🔑 ТОКЕН */
+const GITHUB_TOKEN = "";
 
 async function api(url) {
   const headers = {};
@@ -145,7 +145,6 @@ function toggleDate(id, el) {
   el.textContent = d.classList.contains("open") ? "▼" : "▶";
 }
 
-/* 🔍 LIVE SEARCH */
 document.getElementById("search").addEventListener("input", () => {
   const q = document.getElementById("search").value.toLowerCase();
 
