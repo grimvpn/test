@@ -48,7 +48,7 @@ a {
 }
 
 .download {
-  width:26px;
+  width:28px;
   cursor:pointer;
   opacity:0.85;
 }
@@ -68,6 +68,10 @@ a {
   font-size:14px;
   color:#8b949e;
   display:none;
+}
+
+.date.open {
+  display:block;
 }
 </style>
 </head>
@@ -95,7 +99,7 @@ async function getFileDate(path) {
   }
 }
 
-// 🔽 СКАЧИВАНИЕ (не открытие)
+// ✅ скачивание файла (а не открытие)
 async function downloadFile(url, name) {
   const res = await fetch(url);
   const blob = await res.blob();
@@ -171,14 +175,15 @@ async function loadFiles() {
   }
 }
 
+// ✅ исправленный toggle (без бага)
 function toggleDate(id, el) {
   const d = document.getElementById(id);
 
-  if (d.style.display === "none") {
-    d.style.display = "block";
+  d.classList.toggle("open");
+
+  if (d.classList.contains("open")) {
     el.textContent = "▼";
   } else {
-    d.style.display = "none";
     el.textContent = "▶";
   }
 }
