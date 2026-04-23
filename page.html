@@ -100,7 +100,7 @@ input {
 const USER = "grimvpn";
 const REPO = "test";
 
-/* 🔑 токен только в коде */
+/* 🔑 токен */
 const GITHUB_TOKEN = "";
 
 let currentPath = "";
@@ -114,7 +114,6 @@ function api(url) {
   return fetch(url, { headers });
 }
 
-/* 🚫 скрытие служебных файлов */
 function isHidden(name) {
   return [
     "file.svg",
@@ -156,7 +155,6 @@ function viewFile(url) {
   window.open(url, "_blank");
 }
 
-/* 🔍 search */
 document.getElementById("search").addEventListener("input", () => {
   const q = document.getElementById("search").value.toLowerCase();
 
@@ -171,7 +169,6 @@ function render(items) {
   const container = document.getElementById("files");
   container.innerHTML = "";
 
-  /* ⬅ назад */
   if (currentPath) {
     const back = document.createElement("div");
     back.className = "item";
@@ -186,7 +183,6 @@ function render(items) {
     const div = document.createElement("div");
     div.className = "item";
 
-    /* 📁 папка */
     if (item.type === "dir") {
       div.innerHTML = `
         <div class="left">
@@ -196,7 +192,6 @@ function render(items) {
       div.onclick = () => openFolder(item.name);
     }
 
-    /* 📄 файл */
     else {
       div.innerHTML = `
         <div class="left">
