@@ -40,20 +40,19 @@ body {
 a {
   color:#58a6ff;
   text-decoration:none;
-  font-size:18px;
 }
 
 .icon {
   width:20px;
 }
 
-.download {
+.download, .view {
   width:28px;
   cursor:pointer;
   opacity:0.85;
 }
 
-.download:hover {
+.download:hover, .view:hover {
   opacity:1;
 }
 
@@ -99,7 +98,7 @@ async function getFileDate(path) {
   }
 }
 
-// ✅ скачивание файла (а не открытие)
+// ⬇️ скачивание
 async function downloadFile(url, name) {
   const res = await fetch(url);
   const blob = await res.blob();
@@ -110,6 +109,11 @@ async function downloadFile(url, name) {
   document.body.appendChild(link);
   link.click();
   link.remove();
+}
+
+// 👁️ просмотр
+function viewFile(url) {
+  window.open(url, "_blank");
 }
 
 async function loadFiles() {
@@ -125,7 +129,8 @@ async function loadFiles() {
     let files = data.filter(f =>
       f.type === "file" &&
       f.name !== "file.svg" &&
-      f.name !== "download.svg"
+      f.name !== "download.svg" &&
+      f.name !== "view.svg"
     );
 
     const filesWithDates = await Promise.all(
@@ -155,6 +160,9 @@ async function loadFiles() {
 
           <img src="download.svg" class="download"
                onclick="downloadFile('${file.download_url}','${file.name}')">
+
+          <img src="view.svg" class="view"
+               onclick="viewFile('${file.download_url}')">
         </div>
 
         <div class="right">
@@ -175,7 +183,7 @@ async function loadFiles() {
   }
 }
 
-// ✅ исправленный toggle (без бага)
+// ▶️ toggle (фикс)
 function toggleDate(id, el) {
   const d = document.getElementById(id);
 
