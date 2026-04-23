@@ -156,7 +156,7 @@
                 add('Provider', data.org || '—');
                 add('Latitude / Longitude', `${data.latitude || '?'} / ${data.longitude || '?'}`);
             } catch (e) {
-                add('IP-АДРЕС', 'unknown', 'red');
+                add('IP-Address', 'unknown', 'red');
             }
 
             const ua = navigator.userAgent;
@@ -186,10 +186,10 @@
             add('OS', `${os} • ${isMobile}`);
             add('PLATFORM', navigator.platform || '—');
 
-            add('Permission', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
+            add('Permission', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} bit)`);
             add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
             add('Processor cores CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} core` : '—');
-            if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} ГБ`);
+            if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} GB`);
             add('TOUCH POINTS', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (touchscreen)` : '0');
 
             try {
@@ -226,16 +226,16 @@
                 add('CANVAS FINGERPRINT', '—');
             }
 
-            add('ONLINE', navigator.onLine ? 'ДА' : 'НЕТ', navigator.onLine ? '' : 'red');
+            add('ONLINE', navigator.onLine ? 'YES' : 'NO', navigator.onLine ? '' : 'red');
             if (navigator.connection) {
-                add('ТИП ПОДКЛЮЧЕНИЯ', (navigator.connection.effectiveType || '—').toUpperCase());
-                add('СКОРОСТЬ', `${navigator.connection.downlink || '?'} Мбит/с`);
+                add('CONNECTION TYPE', (navigator.connection.effectiveType || '—').toUpperCase());
+                add('Speed', `${navigator.connection.downlink || '?'} Mbit/s`);
             }
-            add('COOKIES', navigator.cookieEnabled ? 'РАЗРЕШЕНЫ' : 'ЗАБЛОКИРОВАНЫ');
+            add('COOKIES', navigator.cookieEnabled ? 'ALLOWED' : 'BLOCKED');
             add('DO NOT TRACK', navigator.doNotTrack || 'null');
             add('Theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light');
 
-            add('ВНУТРЕННИЕ РАЗМЕРЫ ОКНА', `${window.innerWidth} × ${window.innerHeight}`);
+            add('INTERNAL DIMENSIONS OF THE WINDOW', `${window.innerWidth} × ${window.innerHeight}`);
             add('HISTORY LENGTH', history.length);
 
             lines.push(`
