@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ПОЛНЫЙ ДАМП</title>
+    <title>INFORMATION</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -112,8 +112,8 @@
 </head>
 <body>
 
-    <div class="header">ДАМП УСТРОЙСТВА</div>
-    <div class="subheader">подробности</div>
+    <div class="header">INFORMATION</div>
+    <div class="subheader">details</div>
 
     <div class="info-container" id="info">
     </div>
@@ -139,7 +139,7 @@
 
             const now = new Date();
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
-            add('ТЕКУЩЕЕ ВРЕМЯ (локальное)', now.toLocaleString('ru-RU', {
+            add('ТЕКУЩЕЕ ВРЕМЯ', now.toLocaleString('ru-RU', {
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }));
@@ -156,7 +156,7 @@
                 add('ПРОВАЙДЕР', data.org || '—');
                 add('ШИРОТА / ДОЛГОТА', `${data.latitude || '?'} / ${data.longitude || '?'}`);
             } catch (e) {
-                add('IP-АДРЕС', 'НЕ УДАЛОСЬ ПОЛУЧИТЬ (VPN / AdBlock)', 'red');
+                add('IP-АДРЕС', 'НЕ УДАЛОСЬ ПОЛУЧИТЬ', 'red');
             }
 
             const ua = navigator.userAgent;
@@ -170,8 +170,8 @@
             const versionMatch = ua.match(/(Chrome|Firefox|Safari|Edge|OPR|Opera)\/([\d.]+)/);
             const version = versionMatch ? versionMatch[2] : '—';
 
-            add('БРАУЗЕР', `${browserName} ${version}`);
-            add('ПОЛНЫЙ USER-AGENT', ua);
+            add('Browser', `${browserName} ${version}`);
+            add('FULL USER-AGENT', ua);
             add('ЯЗЫК БРАУЗЕРА', navigator.language || '—');
             add('ВСЕ ЯЗЫКИ', navigator.languages ? navigator.languages.join(' • ') : '—');
 
@@ -183,12 +183,12 @@
             else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS / iPadOS';
 
             const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'МОБИЛЬНОЕ' : 'ДЕСКТОП';
-            add('ОПЕРАЦИОННАЯ СИСТЕМА', `${os} • ${isMobile}`);
+            add('OS', `${os} • ${isMobile}`);
             add('PLATFORM', navigator.platform || '—');
 
             add('РАЗРЕШЕНИЕ ЭКРАНА', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} бит)`);
             add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
-            add('ЯДЕР CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
+            add('CORES CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : '—');
             if (navigator.deviceMemory) add('ОЗУ', `${navigator.deviceMemory} ГБ`);
             add('ТОЧКИ КАСАНИЯ', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (тачскрин)` : '0');
 
@@ -217,7 +217,7 @@
                 ctx.fillRect(125, 1, 62, 20);
                 ctx.fillStyle = '#069';
                 ctx.font = '18pt VT323';
-                ctx.fillText('ХАКЕРСКИЙ ДАМП 31337', 2, 100);
+                ctx.fillText('INFORMATION', 2, 100);
                 ctx.fillStyle = 'rgba(100,200,50,0.7)';
                 ctx.fillText('CANVAS TEST', 4, 60);
                 const hash = c.toDataURL().slice(-32);
