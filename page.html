@@ -13,10 +13,10 @@ body {
   font-size:18px;
 }
 
-h1 { margin-bottom:15px; }
+h1 { margin-bottom:10px; }
 
 .topbar {
-  margin-bottom:20px;
+  margin-bottom:15px;
 }
 
 input {
@@ -28,79 +28,76 @@ input {
   border-radius:6px;
 }
 
-.file {
+.nav {
+  margin:10px 0;
+  color:#8b949e;
+  cursor:pointer;
+}
+
+.item {
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:12px;
   border-bottom:1px solid #30363d;
+  cursor:pointer;
 }
 
-.file:hover { background:#161b22; }
+.item:hover {
+  background:#161b22;
+}
 
 .left {
   display:flex;
   align-items:center;
-  gap:12px;
-}
-
-.right {
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-a {
-  color:#58a6ff;
-  text-decoration:none;
+  gap:10px;
 }
 
 .icon { width:20px; }
 
-.download, .view {
-  width:28px;
+.actions {
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.btn {
+  width:26px;
   cursor:pointer;
   opacity:0.85;
 }
 
-.download:hover, .view:hover { opacity:1; }
-
-.toggle {
-  cursor:pointer;
-  font-size:18px;
-  user-select:none;
-  opacity:0.7;
-}
+.btn:hover { opacity:1; }
 
 .date {
   font-size:14px;
   color:#8b949e;
-  display:none;
 }
-
-.date.open { display:block; }
 </style>
 </head>
 
 <body>
 
-<h1>Файлы</h1>
+<h1>Файловый менеджер</h1>
 
 <div class="topbar">
-  <input id="search" placeholder="Поиск файлов...">
+  <input id="search" placeholder="Поиск...">
 </div>
+
+<div class="nav" id="path"></div>
 
 <div id="files">Загрузка...</div>
 
 <script>
 const USER = "grimvpn";
 const REPO = "test";
-const PATH = "";
 
-/* 🔑 ТОКЕН */
+/* 🔑 токен только тут */
 const GITHUB_TOKEN = "";
 
-async function api(url) {
+let currentPath = "";
+
+function api(url) {
   const headers = {};
   if (GITHUB_TOKEN) {
     headers["Authorization"] = "Bearer " + GITHUB_TOKEN;
@@ -108,19 +105,16 @@ async function api(url) {
   return fetch(url, { headers });
 }
 
-let allFiles = [];
+function updatePathUI() {
+  document.getElementById("path").innerText =
+    "📁 /" + (currentPath || "");
+}
 
-async function getFileDate(path) {
-  try {
-    const res = await api(
-      `https://api.github.com/repos/${USER}/${REPO}/commits?path=${path}&per_page=1`
-    );
-    const data = await res.json();
-    if (!data || !data.length) return new Date(0);
-    return new Date(data[0].commit.committer.date);
-  } catch {
-    return new Date(0);
-  }
+function goBack() {
+  const parts = currentPath.split("/").filter(Boolean);
+  parts.pop();
+  currentPath = parts.join("/");
+  load();
 }
 
 async function downloadFile(url, name) {
@@ -139,87 +133,82 @@ function viewFile(url) {
   window.open(url, "_blank");
 }
 
-function toggleDate(id, el) {
-  const d = document.getElementById(id);
-  d.classList.toggle("open");
-  el.textContent = d.classList.contains("open") ? "▼" : "▶";
+function openFolder(name) {
+  currentPath = currentPath ? currentPath + "/" + name : name;
+  load();
 }
 
-document.getElementById("search").addEventListener("input", () => {
-  const q = document.getElementById("search").value.toLowerCase();
+let allItems = [];
 
-  const filtered = allFiles.filter(f =>
-    f.name.toLowerCase().includes(q)
-  );
-
-  render(filtered);
-});
-
-function render(files) {
+function render(items) {
   const container = document.getElementById("files");
   container.innerHTML = "";
 
-  files.forEach(file => {
-    const id = "d" + Math.random();
+  // 🔙 назад
+  if (currentPath) {
+    const back = document.createElement("div");
+    back.className = "item";
+    back.innerHTML = `<div class="left">⬅ Назад</div>`;
+    back.onclick = goBack;
+    container.appendChild(back);
+  }
 
+  items.forEach(item => {
     const div = document.createElement("div");
-    div.className = "file";
+    div.className = "item";
 
-    div.innerHTML = `
-      <div class="left">
-        <img src="file.svg" class="icon">
+    if (item.type === "dir") {
+      div.innerHTML = `
+        <div class="left">
+          📁 ${item.name}
+        </div>
+      `;
+      div.onclick = () => openFolder(item.name);
+    }
 
-        <a href="#" onclick="downloadFile('${file.download_url}','${file.name}');return false;">
-          ${file.name}
-        </a>
-
-        <img src="download.svg" class="download"
-             onclick="downloadFile('${file.download_url}','${file.name}')">
-
-        <img src="view.svg" class="view"
-             onclick="viewFile('${file.download_url}')">
-      </div>
-
-      <div class="right">
-        <div id="${id}" class="date">
-          ${file.date.toLocaleString()}
+    else {
+      div.innerHTML = `
+        <div class="left">
+          📄 ${item.name}
         </div>
 
-        <span class="toggle" onclick="toggleDate('${id}', this)">▶</span>
-      </div>
-    `;
+        <div class="actions">
+          <img class="btn" src="view.svg"
+               onclick="event.stopPropagation();viewFile('${item.download_url}')">
+
+          <img class="btn" src="download.svg"
+               onclick="event.stopPropagation();downloadFile('${item.download_url}','${item.name}')">
+        </div>
+      `;
+    }
 
     container.appendChild(div);
   });
 }
 
-async function loadFiles() {
-  const res = await api(
-    `https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`
+/* 🔍 live search */
+document.getElementById("search").addEventListener("input", () => {
+  const q = document.getElementById("search").value.toLowerCase();
+
+  const filtered = allItems.filter(i =>
+    i.name.toLowerCase().includes(q)
   );
 
+  render(filtered);
+});
+
+async function load() {
+  const url = `https://api.github.com/repos/${USER}/${REPO}/contents/${currentPath}`;
+
+  const res = await api(url);
   const data = await res.json();
 
-  let files = data.filter(f =>
-    f.type === "file" &&
-    f.name !== "file.svg" &&
-    f.name !== "download.svg" &&
-    f.name !== "view.svg"
-  );
-
-  allFiles = await Promise.all(
-    files.map(async file => ({
-      ...file,
-      date: await getFileDate(file.path)
-    }))
-  );
-
-  allFiles.sort((a,b)=>b.date-a.date);
-
-  render(allFiles);
+  allItems = data;
+  updatePathUI();
+  render(allItems);
 }
 
-loadFiles();
+load();
 </script>
 
 </body>
