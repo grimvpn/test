@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Tester — Массовый нагрузочный тест</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0f0f12;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #1a1a1f;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+            padding: 20px 30px;
+            color: white;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+        
+        .main {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+        }
+        
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .section {
+            background: #24242b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #aaa;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 220px;
+            background: #111114;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 14px;
+            color: #ddd;
+            font-family: monospace;
+            font-size: 15px;
+            resize: vertical;
+            outline: none;
+        }
+        
+        textarea:focus {
+            border-color: #3b82f6;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            background: #111114;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #ddd;
+            font-size: 16px;
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-start {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .btn-start:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+        }
+        
+        .btn-stop {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-stop:hover {
+            background: #dc2626;
+        }
+        
+        .btn-clear {
+            background: #444;
+            color: white;
+        }
+        
+        .status {
+            padding: 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .status.running {
+            background: #166534;
+            color: #86efac;
+            display: block;
+        }
+        
+        .log {
+            height: 280px;
+            overflow-y: auto;
+            background: #111114;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 14px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #999;
+            white-space: pre-wrap;
+        }
+        
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .stats {
+            background: #24242b;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #60a5fa;
+        }
+        
+        .warning {
+            background: #451a03;
+            color: #fbbf24;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 13px;
+            border-top: 1px solid #333;
+        }
+        
+        .progress {
+            height: 6px;
+            background: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Stress Tester</h1>
+            <div class="subtitle">Инструмент для нагрузочного тестирования (только для внутренних тестов IT-компаний СНГ)</div>
+        </header>
+        
+        <div class="main">
+            <!-- Левая панель -->
+            <div class="left-panel">
+                <div class="section">
+                    <label for="urls">Список URL для тестирования (по одному на строку)</label>
+                    <textarea id="urls" placeholder="https://example.com/api/test&#10;https://your-service.com/endpoint&#10;https://api.company.com/v2/heavy"></textarea>
+                </div>
+                
+                <div class="section">
+                    <div class="controls">
+                        <div>
+                            <label for="threads">Количество параллельных потоков (мощность)</label>
+                            <input type="number" id="threads" value="50" min="1" max="5000">
+                        </div>
+                        <div>
+                            <label for="duration">Длительность теста (секунды)</label>
+                            <input type="number" id="duration" value="60" min="5" max="3600">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <label for="method">Метод HTTP</label>
+                        <select id="method">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <button id="startBtn" class="btn btn-start" style="width: 100%;">▶ Запустить нагрузочный тест</button>
+                    <button id="stopBtn" class="btn btn-stop" style="width: 100%; display: none;">■ Остановить тест</button>
+                    <button id="clearBtn" class="btn btn-clear" style="width: 100%; margin-top: 10px;">Очистить всё</button>
+                </div>
+                
+                <div id="status" class="status">Тест запущен...</div>
+                
+                <div class="section">
+                    <label>Лог выполнения</label>
+                    <div id="log" class="log"></div>
+                </div>
+            </div>
+            
+            <!-- Правая панель -->
+            <div class="right-panel">
+                <div class="stats">
+                    <h3 style="margin-top: 0; color: #60a5fa;">Статистика теста</h3>
+                    <div class="stat-item">
+                        <span>Отправлено запросов:</span>
+                        <span id="requestsSent" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Успешных ответов:</span>
+                        <span id="successCount" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Ошибок:</span>
+                        <span id="errorCount" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Среднее время ответа (мс):</span>
+                        <span id="avgTime" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Запросов в секунду (RPS):</span>
+                        <span id="rps" class="stat-value">0</span>
+                    </div>
+                    
+                    <div style="margin-top: 20px; height: 6px; background: #333; border-radius: 3px; overflow: hidden;">
+                        <div id="progressBar" class="progress"></div>
+                    </div>
+                </div>
+                
+                <div class="warning">
+                    ⚠️ <strong>Внимание!</strong><br>
+                    Этот инструмент предназначен исключительно для тестирования собственных сервисов с явного разрешения владельца.<br><br>
+                    Использование против чужих ресурсов без согласия запрещено и может быть незаконным.
+                </div>
+                
+                <div class="section">
+                    <h3 style="margin-top: 0;">Как использовать</h3>
+                    <ol style="padding-left: 20px; color: #aaa; font-size: 14px;">
+                        <li>Вставьте список URL (по одному на строку)</li>
+                        <li>Укажите количество параллельных потоков</li>
+                        <li>Выберите длительность теста</li>
+                        <li>Нажмите «Запустить»</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Internal Stress Tester • Только для легитимного нагрузочного тестирования • Хранится в безопасном корпоративном окружении
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let workers = [];
+        let totalRequests = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let totalTime = 0;
+        let startTime = 0;
+        let interval = null;
+        
+        const urlsInput = document.getElementById('urls');
+        const threadsInput = document.getElementById('threads');
+        const durationInput = document.getElementById('duration');
+        const methodSelect = document.getElementById('method');
+        
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+        
+        const requestsSentEl = document.getElementById('requestsSent');
+        const successCountEl = document.getElementById('successCount');
+        const errorCountEl = document.getElementById('errorCount');
+        const avgTimeEl = document.getElementById('avgTime');
+        const rpsEl = document.getElementById('rps');
+        const progressBar = document.getElementById('progressBar');
+        
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('ru-RU');
+            let color = '#999';
+            if (type === 'success') color = '#4ade80';
+            if (type === 'error') color = '#f87171';
+            if (type === 'warn') color = '#fbbf24';
+            
+            logDiv.innerHTML += `<span style="color: ${color}">[${time}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStats() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const currentRps = elapsed > 0 ? Math.round(totalRequests / elapsed) : 0;
+            
+            requestsSentEl.textContent = totalRequests.toLocaleString('ru-RU');
+            successCountEl.textContent = successCount.toLocaleString('ru-RU');
+            errorCountEl.textContent = errorCount.toLocaleString('ru-RU');
+            avgTimeEl.textContent = totalRequests > 0 ? Math.round(totalTime / totalRequests) : 0;
+            rpsEl.textContent = currentRps;
+        }
+        
+        async function sendRequest(url, method) {
+            const startReq = Date.now();
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
+                const response = await fetch(url, {
+                    method: method,
+                    mode: 'no-cors',           // для обхода CORS при тестировании
+                    cache: 'no-cache',
+                    signal: controller.signal,
+                    headers: {
+                        'User-Agent': 'Internal-StressTester/1.0 (IT company test tool)'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                const duration = Date.now() - startReq;
+                totalTime += duration;
+                totalRequests++;
+                successCount++;
+                
+                if (response.ok || response.type === 'opaque') {
+                    return { success: true, duration };
+                } else {
+                    errorCount++;
+                    return { success: false, duration };
+                }
+            } catch (err) {
+                const duration = Date.now() - startReq;
+                totalTime += duration;
+                totalRequests++;
+                errorCount++;
+                return { success: false, duration };
+            }
+        }
+        
+        function startWorker(urls, method, workerId) {
+            const worker = {
+                id: workerId,
+                running: true
+            };
+            
+            (async () => {
+                while (worker.running && isRunning) {
+                    for (const url of urls) {
+                        if (!worker.running || !isRunning) break;
+                        
+                        await sendRequest(url.trim(), method);
+                        updateStats();
+                        
+                        // Небольшая задержка, чтобы не убивать браузер полностью
+                        await new Promise(r => setTimeout(r, 5));
+                    }
+                }
+            })();
+            
+            return worker;
+        }
+        
+        function startTest() {
+            const rawUrls = urlsInput.value.trim();
+            if (!rawUrls) {
+                alert('Введите хотя бы один URL!');
+                return;
+            }
+            
+            const urls = rawUrls.split('\n').filter(url => url.trim() !== '');
+            const threads = parseInt(threadsInput.value) || 50;
+            const duration = parseInt(durationInput.value) || 60;
+            const method = methodSelect.value;
+            
+            if (urls.length === 0) {
+                alert('Список URL пуст!');
+                return;
+            }
+            
+            // Сброс статистики
+            totalRequests = 0;
+            successCount = 0;
+            errorCount = 0;
+            totalTime = 0;
+            logDiv.innerHTML = '';
+            
+            isRunning = true;
+            startTime = Date.now();
+            
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+            statusDiv.classList.add('running');
+            statusDiv.textContent = `Тест запущен • ${threads} потоков • ${duration} сек`;
+            
+            log(`🚀 Запуск теста: ${urls.length} URL, ${threads} потоков, метод ${method}`, 'success');
+            
+            // Запуск потоков
+            workers = [];
+            for (let i = 0; i < threads; i++) {
+                const worker = startWorker(urls, method, i + 1);
+                workers.push(worker);
+            }
+            
+            // Автоостановка по таймеру
+            setTimeout(() => {
+                if (isRunning) stopTest();
+            }, duration * 1000);
+            
+            // Обновление статистики каждые 300мс
+            interval = setInterval(updateStats, 300);
+        }
+        
+        function stopTest() {
+            isRunning = false;
+            
+            workers.forEach(w => {
+                w.running = false;
+            });
+            
+            if (interval) {
+                clearInterval(interval);
+            }
+            
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            statusDiv.classList.remove('running');
+            statusDiv.textContent = 'Тест остановлен';
+            
+            log('🛑 Тест остановлен пользователем', 'warn');
+            updateStats();
+        }
+        
+        function clearAll() {
+            if (isRunning) {
+                if (!confirm('Тест сейчас запущен. Остановить и очистить?')) return;
+                stopTest();
+            }
+            
+            urlsInput.value = '';
+            logDiv.innerHTML = '';
+            requestsSentEl.textContent = '0';
+            successCountEl.textContent = '0';
+            errorCountEl.textContent = '0';
+            avgTimeEl.textContent = '0';
+            rpsEl.textContent = '0';
+            progressBar.style.width = '0%';
+            
+            log('🧹 Всё очищено', 'info');
+        }
+        
+        // Обработчики событий
+        startBtn.addEventListener('click', startTest);
+        stopBtn.addEventListener('click', stopTest);
+        clearBtn.addEventListener('click', clearAll);
+        
+        // Предупреждение при закрытии страницы во время теста
+        window.addEventListener('beforeunload', (e) => {
+            if (isRunning) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+        
+        // Пример URL при первой загрузке
+        setTimeout(() => {
+            if (!urlsInput.value.trim()) {
+                urlsInput.value = 'https://httpbin.org/get\nhttps://httpbin.org/delay/1';
+            }
+        }, 800);
+        
+        log('✅ Stress Tester готов к работе. Только для легитимных тестов.', 'success');
+    </script>
+</body>
+</html>
