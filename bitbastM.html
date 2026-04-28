@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bytebeat Professional Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -33,11 +33,13 @@
         ::-webkit-scrollbar-thumb { background: #00ff41; }
     </style>
 </head>
-<body class="p-4 flex flex-col min-h-screen md:h-screen md:overflow-hidden">
+<!-- Убрал overflow-hidden на мобильных, чтобы можно было листать вниз -->
+<body class="p-4 flex flex-col md:h-screen md:overflow-hidden">
     <div class="max-w-7xl mx-auto w-full h-full flex flex-col gap-4">
         <!-- Top Bar / Visualizer -->
-        <div class="flex flex-col md:flex-row gap-4 shrink-0">
-            <div class="flex-grow h-48 md:h-52 flex flex-col bg-black neon-border overflow-hidden relative">
+        <!-- Изменил h-52 на md:h-52, чтобы на мобильных блок подстраивался под контент -->
+        <div class="flex flex-col md:flex-row gap-4 md:h-52 shrink-0">
+            <div class="flex-grow flex flex-col bg-black neon-border overflow-hidden relative min-h-[200px]">
                 <canvas id="vizCanvas" class="w-full h-full"></canvas>
                 <div class="absolute top-2 left-2 text-[10px] bg-black/80 px-1 uppercase tracking-tighter border border-zinc-800">
                     Visualizer: <span id="vizModeLabel">FFT</span>
@@ -52,7 +54,7 @@
                     <button id="resetBtn" class="btn">Reset T</button>
                 </div>
                 
-                <div class="mt-4 md:mt-auto text-[10px] opacity-40 leading-relaxed">
+                <div class="mt-auto text-[10px] opacity-40 leading-relaxed">
                     WORKLET_ENGINE v2.5<br>
                     Status: <span id="status" class="text-white">Ready</span><br>
                     T Value: <span id="tDisplay" class="text-white">0</span>
@@ -60,22 +62,23 @@
             </div>
         </div>
 
+        <!-- Убрал overflow-hidden на мобильных для этого блока -->
         <div class="flex flex-col md:flex-row gap-4 flex-grow md:overflow-hidden">
             <!-- Left: Editor & Settings -->
-            <div class="flex-[2] flex flex-col gap-4">
+            <div class="flex-[2] flex flex-col gap-4 overflow-y-auto pr-2">
                 <div class="flex flex-wrap gap-4 items-end bg-[#0c0c0c] p-3 border border-zinc-800">
-                    <div class="flex flex-col gap-1 flex-grow md:flex-none">
+                    <div class="flex flex-col gap-1">
                         <label class="text-[10px] uppercase opacity-50">Audio Mode</label>
-                        <select id="mode" class="text-xs p-1 w-full">
+                        <select id="mode" class="text-xs p-1">
                             <option value="bytebeat">Bytebeat</option>
                             <option value="signed">Signed Bytebeat</option>
                             <option value="floatbeat">Floatbeat</option>
                             <option value="funcbeat">Funcbeat</option>
                         </select>
                     </div>
-                    <div class="flex flex-col gap-1 flex-grow md:flex-none">
+                    <div class="flex flex-col gap-1">
                         <label class="text-[10px] uppercase opacity-50">Sample Rate</label>
-                        <select id="sampleRate" class="text-xs p-1 w-full">
+                        <select id="sampleRate" class="text-xs p-1">
                             <option value="8000" selected>8000 Hz</option>
                             <option value="11025">11025 Hz</option>
                             <option value="16000">16000 Hz</option>
@@ -84,9 +87,9 @@
                             <option value="44100">44100 Hz</option>
                         </select>
                     </div>
-                    <div class="flex flex-col gap-1 flex-grow md:flex-none">
+                    <div class="flex flex-col gap-1">
                         <label class="text-[10px] uppercase opacity-50">Viz Type</label>
-                        <select id="vizMode" class="text-xs p-1 w-full">
+                        <select id="vizMode" class="text-xs p-1">
                             <option value="fft">FFT</option>
                             <option value="wave">Waveform</option>
                             <option value="points">Points</option>
@@ -95,19 +98,19 @@
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-col flex-grow min-h-[250px] md:min-h-0">
+                <div class="flex flex-col flex-grow min-h-[200px]">
                     <label class="text-[10px] uppercase mb-1 opacity-50 tracking-widest italic">Code Editor</label>
-                    <textarea id="formula" class="w-full h-full p-4 font-mono text-lg md:text-xl" spellcheck="false">t*((t&4096?t%65536<59392?7:t&7:16)+(1&t>>14))>>(3&-t>>(t&2048?2:10))|t>>(t&16384?t&4096?10:3:2)</textarea>
+                    <textarea id="formula" class="w-full h-full p-4 font-mono text-xl" spellcheck="false">t*((t&4096?t%65536<59392?7:t&7:16)+(1&t>>14))>>(3&-t>>(t&2048?2:10))|t>>(t&16384?t&4096?10:3:2)</textarea>
                 </div>
                 <div id="errorLog" class="text-red-500 text-[10px] font-bold h-4"></div>
             </div>
 
             <!-- Right: Library -->
-            <div class="flex-1 flex flex-col gap-2 overflow-hidden border-t md:border-t-0 md:border-l border-zinc-900 pt-4 md:pt-0 md:pl-4">
+            <!-- Заменил border-l на md:border-l, чтобы на мобильных линия не висела сбоку -->
+            <div class="flex-1 flex flex-col gap-2 overflow-hidden md:border-l border-zinc-900 md:pl-4">
                 <label class="text-[10px] uppercase opacity-50 sticky top-0 bg-[#080808] z-10 py-1 tracking-widest border-b border-zinc-800 mb-2">Preset Library</label>
-                <div class="overflow-y-auto flex-grow max-h-[300px] md:max-h-none">
-                    <!-- Библиотека будет здесь -->
-                </div>
+                <!-- Контейнер для вашего списка пресетов -->
+                <div id="presets" class="flex flex-col overflow-y-auto"></div>
             </div>
         </div>
     </div>
