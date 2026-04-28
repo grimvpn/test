@@ -115,13 +115,37 @@
 
     <script>
         const PRESETS = [
-            { name: "Neurofunk", code: "t*((t&4096?t%65536<59392?7:t&7:16)+(1&t>>14))>>(3&-t>>(t&2048?2:10))|t>>(t&16384?t&4096?10:3:2)" },
-            { name: "The Time is Running Out", code: "(t*5&t>>7)|(t*3&t>>10)" },
-            { name: "42 Melody (Decay)", code: "t*(42&t>>10)%256*(1-t%2048/3000)" },
-            { name: "Sierpinski Harmony", code: "t&t>>8" },
-            { name: "Awesome Level", code: "t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>2" },
-            { name: "Alien Dungeon", code: "t*(t&16384?7:5)*(3+(3&t>>14))>>(3&t>>9)|t>>6" },
-            { name: "Noisy Beats", code: "((-t&4095)*(255&t*(t&t>>13))>>12)+(127&t*(234&t>>8&t>>3)>>(3&t>>14))" }
+            { name: "link", code: "t+(t&t^t>>6)-t*(t>>9&(t%16?2:6)&t>>9)", mode: "bytebeat" },
+            { name: "the 42 melody", code: "t*(42&t>>10)", mode: "bytebeat" },
+            { name: "Awesome level", code: "t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>2", mode: "bytebeat" },
+            { name: "Awesome level with slower rhythm", code: "t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>3", mode: "bytebeat" },
+            { name: "Alien dungeon", code: "t*(t&16384?7:5)*(3+(3&t>>14))>>(3&t>>9)|t>>6", mode: "bytebeat" },
+            { name: "Awesome level #2", code: "t*(t&16384?6:5)*(5-(3&t>>(t&4096?7:14)))>>(3&t>>9)|t>>3", mode: "bytebeat" },
+            { name: "Boss level #6", code: "t*((t&4096?6:16)+(1&t>>14))>>(3&t>>8)|t>>(t&4096?3:4)", mode: "bytebeat" },
+            { name: "Neurofunk", code: "t*((t&4096?t%65536<59392?7:t&7:16)+(1&t>>14))>>(3&-t>>(t&2048?2:10))|t>>(t&16384?t&4096?10:3:2)", mode: "bytebeat" },
+            { name: "42 melody with adjustable decay", code: "t*(42&t>>10)%256*(1-t%2048/3000)", mode: "bytebeat" },
+            { name: "minimal sierpinski harmony", code: "t&t>>8", mode: "bytebeat" },
+            { name: "link2", code: "t*((t>>12|t>>8)&63&t>>4)", mode: "bytebeat" },
+            { name: "Sin() isn't kosher, people!", code: "10*(t>>6|t|t>>(t>>16))+(7&t>>11)", mode: "bytebeat" },
+            { name: "Combined xpansive's and varjohukka's stuff", code: "(t>>7|t|t>>6)*10+4*(t&t>>13|t>>6)", mode: "bytebeat" },
+            { name: "Another attempt at melody construction", code: "t*(3+(1^t>>10&5))*(5+(3&t>>14))>>(t>>8&3)", mode: "bytebeat" },
+            { name: "moon scanner generalization", code: "2*(t>>5&t)-(t>>5)+t*(t>>14&14)", mode: "bytebeat" },
+            { name: "Long Sierpinski Harmony", code: "5*t&t>>7|3*t&t>>10", mode: "bytebeat" },
+            { name: "Noisy beats", code: "((-t&4095)*(255&t*(t&t>>13))>>12)+(127&t*(234&t>>8&t>>3)>>(3&t>>14))", mode: "bytebeat" },
+            { name: "Bassline #countercomplex", code: "(~t>>2)*((127&t*(7&t>>10))<(245&t*(2+(5&t>>14))))", mode: "bytebeat" },
+            { name: "link (division logic)", code: "t%(t/(t>>9|t>>13))", mode: "bytebeat" },
+            { name: "Combination (Fanfare? + Street Surfer)", code: "(t&4096?(t*(t^t%255)|t>>4)>>1:t>>3|(t&8192?t<<2:t))^((t&8192?t&4096?t&1024?2*t:4*t:t&512?4*t:4.2*t:(t&4096?t&1024?2*t:10*t:t&512?2*t:8*t)>>2)*(t&16384?3:2)|t*(t&16384?1/8:1/(.01*t))>>1)", mode: "bytebeat" },
+            { name: "link (shifting logic)", code: "t/3>>t%40+5|t/(24+t&3)>>t%(15-(t>>15)%8*6)+5", mode: "bytebeat" },
+            { name: "a quite complex one using conditionals", code: "10*(t&5*t|t>>6|(t&32768?-6*t/7:(t&65536?-9*t&100:-9*(t&100))/11))", mode: "bytebeat" },
+            { name: "link1", code: "t*(t^t+(t>>15|1)^(t-1280^t)>>10)", mode: "bytebeat" },
+            { name: "Frere Jacques", code: "10*(t>>7|3*t|t>>(t>>15))+(t>>8&5)", mode: "bytebeat" },
+            { name: "generic 3/4 buildup", code: "t&598?t>>4:t>>10", mode: "bytebeat" },
+            { name: "music for a C64 game", code: "t*(t>>(t&4096?t*t>>12:t>>12))|t<<(t>>8)|t>>4", mode: "bytebeat" },
+            { name: "link (nested shifts)", code: "t*(t>>9&10|t>>11&24^t>>10&15&t>>15)", mode: "bytebeat" },
+            { name: "Modem melody", code: "(t&t>>12)*(t>>4|t>>8)", mode: "bytebeat" },
+            { name: "link (quadratic)", code: "20*t*t*(t>>11)/7", mode: "bytebeat" },
+            { name: "ONE MILLION alarm clocks", code: "t*t/(t>>12&t>>8)<<7", mode: "bytebeat" },
+            { name: "bare-bones version", code: "t>>4|t*t*(t>>6&8^8)*(t>>11^t/3>>12)/(7+(t>>10&t>>14&3))", mode: "bytebeat" }
         ];
 
         let audioCtx = null;
