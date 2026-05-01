@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Beep Player</title>
+</head>
+<body style="background:black;color:white;font-family:sans-serif;text-align:center;">
+
+<h2>🔊 Beep Player</h2>
+
+<input id="code" style="width:80%;padding:10px;font-size:16px"
+placeholder="Вставь строку...">
+
+<br><br>
+
+<button onclick="play()">▶ Play</button>
+<button onclick="stop()">⏹ Stop</button>
+<button onclick="save()">💾 Save</button>
+
+<br><br>
+
+<select id="saved" onchange="loadSaved()">
+<option value="">-- сохранённые --</option>
+</select>
+
+<script>
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+let active = [];
+
+function beep(freq, time, duration) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "square";
+    osc.frequency.value = freq;
+
+    gain.gain.setValueAtTime(0.25, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(time);
+    osc.stop(time + duration);
+
+    active.push(osc);
+}
+
+function play() {
+    stop();
+    const input = document.getElementById("code").value.trim();
+    const parts = input.split("|");
+
+    let t = ctx.currentTime;
+
+    for (let i = 0; i < parts.length; i++) {
+        const val = parseInt(parts[i]);
+        if (!isNaN(val) && val > 0) {
+            let freq = 500 + val * 180;
+            beep(freq, t, 0.08);
+            t += 0.12;
+        }
+    }
+}
+
+function stop() {
+    active.forEach(o => {
+        try { o.stop(); } catch {}
+    });
+    active = [];
+}
+
+function save() {
+    const val = document.getElementById("code").value;
+    if (!val) return;
+
+    let list = JSON.parse(localStorage.getItem("beeps") || "[]");
+    list.push(val);
+    localStorage.setItem("beeps", JSON.stringify(list));
+    loadList();
+}
+
+function loadList() {
+    const select = document.getElementById("saved");
+    select.innerHTML = '<option value="">-- сохранённые --</option>';
+
+    let list = JSON.parse(localStorage.getItem("beeps") || "[]");
+    list.forEach((v, i) => {
+        let opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = "Sound " + (i+1);
+        select.appendChild(opt);
+    });
+}
+
+function loadSaved() {
+    const val = document.getElementById("saved").value;
+    if (val) document.getElementById("code").value = val;
+}
+
+loadList();
+</script>
+
+</body>
+</html>
