@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INFORMATION</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: 'VT323', monospace;
+            font-size: 1.65rem;
+            line-height: 1.55;
+            padding: 25px 20px;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 3.2rem;
+            letter-spacing: 10px;
+            text-shadow: 0 0 20px #ff0000,
+                         0 0 40px #ff0000;
+            animation: glitch 1s infinite alternate;
+            color: #ff0000;
+        }
+
+        .subheader {
+            text-align: center;
+            font-size: 1.85rem;
+            margin-bottom: 40px;
+            color: #00cc00;
+            text-shadow: 0 0 15px #00ff00;
+        }
+
+        .info-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.95);
+            border: 4px solid #00ff00;
+            padding: 25px 20px;
+            box-shadow: 0 0 60px rgba(0, 255, 0, 0.6);
+        }
+
+        .info-line {
+            display: flex;
+            margin-bottom: 16px;
+            border-bottom: 1px dotted #003300;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .key {
+            color: #ff0000;
+            text-shadow: 0 0 8px #ff0000;
+            flex: 0 0 100%;
+            font-size: 1.55rem;
+        }
+
+        .value {
+            flex: 1 1 100%;
+            color: #00ff00;
+            word-break: break-all;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                font-size: 1.75rem;
+                padding: 40px 30px;
+            }
+            .header { font-size: 4rem; }
+            .subheader { font-size: 2.1rem; }
+            .info-container { max-width: 1100px; padding: 35px 40px; }
+            .info-line {
+                flex-wrap: nowrap;
+            }
+            .key {
+                flex: 0 0 380px;
+                font-size: 1.65rem;
+            }
+            .value { flex: 1; }
+        }
+
+        .red { color: #ff5555; }
+        .yellow { color: #ffff00; }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 1.35rem;
+            opacity: 0.75;
+            color: #ff0000;
+            line-height: 1.4;
+        }
+
+        @keyframes glitch {
+            0%   { transform: translate(0); }
+            20%  { transform: translate(-3px, 2px); }
+            40%  { transform: translate(3px, -3px); }
+            60%  { transform: translate(-2px, 3px); }
+            80%  { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">INFORMATION</div>
+    <div class="subheader">details</div>
+
+    <div class="info-container" id="info">
+    </div>
+
+    <div class="footer">
+        
+    </div>
+
+    <script>
+        async function gatherMaximumIntel() {
+            const container = document.getElementById('info');
+            const lines = [];
+
+            function add(key, value, color = '') {
+                const val = Array.isArray(value) ? value.join(' • ') : (value || '—');
+                lines.push(`
+                    <div class="info-line">
+                        <div class="key">${key}</div>
+                        <div class="value ${color}">${val}</div>
+                    </div>
+                `);
+            }
+
+            const now = new Date();
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
+            add('Date / Time', now.toLocaleString('ru-RU', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }));
+            add('Time zone', tz);
+            add('UTC', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
+
+            try {
+                const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+                const data = await res.json();
+                
+                add('IP-Address', data.ip, 'red');
+                add('Country', `${data.country_name || '—'} (${data.country_code || '—'})`);
+                add('City / Region', `${data.city || '—'}, ${data.region || '—'}`);
+                add('Provider', data.org || '—');
+                add('Latitude / Longitude', `${data.latitude || '?'} / ${data.longitude || '?'}`);
+            } catch (e) {
+                add('IP-Address', 'unknown', 'red');
+            }
+
+            const ua = navigator.userAgent;
+            let browserName = 'unknown';
+            if (ua.includes('Chrome') && !ua.includes('Edg')) browserName = 'Google Chrome';
+            else if (ua.includes('Edg')) browserName = 'Microsoft Edge';
+            else if (ua.includes('Firefox')) browserName = 'Mozilla Firefox';
+            else if (ua.includes('Safari') && !ua.includes('CriOS')) browserName = 'Apple Safari';
+            else if (ua.includes('Opera') || ua.includes('OPR')) browserName = 'Opera';
+
+            const versionMatch = ua.match(/(Chrome|Firefox|Safari|Edge|OPR|Opera)\/([\d.]+)/);
+            const version = versionMatch ? versionMatch[2] : '—';
+
+            add('Browser', `${browserName} ${version}`);
+            add('FULL USER-AGENT', ua);
+            add('Language', navigator.language || '—');
+            add('All languages', navigator.languages ? navigator.languages.join(' • ') : '—');
+
+            let os = 'Неизвестно';
+            if (ua.includes('Windows')) os = 'Windows';
+            else if (ua.includes('Mac')) os = 'macOS';
+            else if (ua.includes('Linux')) os = 'Linux';
+            else if (ua.includes('Android')) os = 'Android';
+            else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS / iPadOS';
+
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(ua) ? 'Mobile' : 'Desktop';
+            add('OS', `${os} • ${isMobile}`);
+            add('PLATFORM', navigator.platform || '—');
+
+            add('Permission', `${screen.width} × ${screen.height} (${screen.pixelDepth || '?'} bit)`);
+            add('DEVICE PIXEL RATIO', window.devicePixelRatio || '—');
+            add('CPU', navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} core` : '—');
+            if (navigator.deviceMemory) add('RAM', `${navigator.deviceMemory} GB`);
+            add('TOUCH POINTS', navigator.maxTouchPoints ? `${navigator.maxTouchPoints} (touchscreen)` : '0');
+
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : '—';
+                    const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : '—';
+                    add('WEBGL VENDOR', vendor);
+                    add('WEBGL RENDERER (GPU)', renderer);
+                } else {
+                    add('WEBGL', 'NOT SUPPORTED');
+                }
+            } catch (e) {
+                add('WEBGL', '—');
+            }
+            
+            try {
+                const c = document.createElement('canvas');
+                c.width = 280; c.height = 140;
+                const ctx = c.getContext('2d');
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.font = '18pt VT323';
+                ctx.fillText('INFORMATION', 2, 100);
+                ctx.fillStyle = 'rgba(100,200,50,0.7)';
+                ctx.fillText('CANVAS TEST', 4, 60);
+                const hash = c.toDataURL().slice(-32);
+                add('CANVAS FINGERPRINT', hash);
+            } catch (e) {
+                add('CANVAS FINGERPRINT', '—');
+            }
+
+            add('ONLINE', navigator.onLine ? 'YES' : 'NO', navigator.onLine ? '' : 'red');
+            if (navigator.connection) {
+                add('CONNECTION TYPE', (navigator.connection.effectiveType || '—').toUpperCase());
+                add('Speed', `${navigator.connection.downlink || '?'} Mbit/s`);
+            }
+            add('COOKIES', navigator.cookieEnabled ? 'ALLOWED' : 'BLOCKED');
+            add('DO NOT TRACK', navigator.doNotTrack || 'null');
+            add('Theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light');
+
+            add('INTERNAL DIMENSIONS OF THE WINDOW', `${window.innerWidth} × ${window.innerHeight}`);
+            add('HISTORY LENGTH', history.length);
+
+            lines.push(`
+                <div class="info-line" style="border:none; margin-top:40px; font-size:2rem; color:#ff0000; text-align:center;">
+    
+                </div>
+            `);
+
+            container.innerHTML = lines.join('');
+        }
+
+        window.onload = gatherMaximumIntel;
+    </script>
+</body>
+</html>

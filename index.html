@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель навигации</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .btn-hover-effect {
+            transition: all 0.3s ease;
+        }
+        .btn-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-gray-700">
+        <h1 class="text-3xl font-bold text-center text-white mb-8 tracking-wider">МЕНЮ</h1>
+        
+        <div class="flex flex-col space-y-4">
+            <a href="bitbast" class="btn-hover-effect block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 px-6 rounded-xl text-lg tracking-wide focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                BitBast
+            </a>
+
+            <a href="piano" class="btn-hover-effect block w-full text-center bg-purple-600 hover:bg-purple-500 text-white font-semibold py-4 px-6 rounded-xl text-lg tracking-wide focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75">
+                Piano
+            </a>
+
+            <a href="ddos" class="btn-hover-effect block w-full text-center bg-red-600 hover:bg-red-500 text-white font-semibold py-4 px-6 rounded-xl text-lg tracking-wide focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75">
+                DDos
+            </a>
+
+            <a href="dox" class="btn-hover-effect block w-full text-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-xl text-lg tracking-wide focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 border border-gray-600">
+                Dox
+            </a>
+        </div>
+        
+        <p class="text-center text-gray-500 mt-6 text-sm">
+            Выберите раздел для перехода
+        </p>
+    </div>
+
+</body>
+</html>
