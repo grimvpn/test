@@ -144,7 +144,7 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }));
             add('Time zone', tz);
-            add('UTC', `${(now.getTimezoneOffset() / 60).toFixed(1)} часов`);
+            add('UTC', `${(now.getTimezoneOffset() / 60).toFixed(1)} hours`);
 
             try {
                 const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
