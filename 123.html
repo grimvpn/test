@@ -2,205 +2,289 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Ultimate Exif Tool (Local)</title>
-    <!-- Библиотеки -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Meta Editor | Browser Native</title>
+    
+    <!-- Подключаем зависимости -->
     <script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    
+
     <style>
-        :root { --accent: #6366f1; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        .header { background: var(--card); padding: 2rem; border-radius: 15px; text-align: center; border: 1px solid #334155; margin-bottom: 20px; }
-        .drop-zone { border: 2px dashed var(--accent); padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; transition: 0.3s; background: #1e293b55; }
-        .drop-zone:hover { background: #6366f111; }
-        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-        .viewer-panel, .edit-panel { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #334155; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #334155; }
-        th { color: var(--accent); text-transform: uppercase; font-size: 0.75rem; }
-        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; width: 100%; border-radius: 4px; }
-        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .status-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-top: 10px; background: #334155; }
-        #preview { width: 100%; border-radius: 8px; margin-bottom: 15px; display: none; }
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --danger: #f43f5e;
+            --text: #f1f5f9;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 20px;
+            border: 1px solid #334155;
+            margin-bottom: 20px;
+        }
+        .drop-zone {
+            border: 2px dashed #475569;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #1e293b;
+        }
+        .drop-zone:hover {
+            border-color: var(--accent);
+            background: #26334d;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-download { background: #10b981; color: white; }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .panel {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            overflow: hidden;
+        }
+        #preview-img {
+            max-width: 100%;
+            border-radius: 8px;
+            display: none;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .meta-table tr { border-bottom: 1px solid #334155; }
+        .meta-table td { padding: 10px 5px; }
+        .tag-name { color: #94a3b8; width: 40%; font-weight: 500; }
+        .tag-value input {
+            background: transparent;
+            border: 1px solid #475569;
+            color: var(--accent);
+            width: 100%;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .section-title {
+            background: #334155;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Профессиональный Менеджер Метаданных</h1>
-        <p>PNG • WebP • TIFF • JPEG • PDF • DOCX • XLSX • PPTX</p>
-        <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-            Нажмите или перетащите файл сюда
-            <input type="file" id="fileInput" hidden>
+        <h1>Exif & Meta Editor</h1>
+        <p>Локальная обработка: JPEG, PNG, WebP, TIFF, PDF, DOCX, XLSX, PPTX</p>
+        
+        <div class="drop-zone" id="dropZone">
+            <span id="dropText">Перетащите файл сюда или нажмите для выбора</span>
+            <input type="file" id="fileInput" class="hidden" accept=".jpg,.jpeg,.png,.webp,.tiff,.pdf,.docx,.xlsx,.pptx">
         </div>
-        <div id="fileInfo" class="status-tag">Файл не выбран</div>
+
+        <div class="controls">
+            <button class="btn-danger" id="clearAllBtn" disabled>🗑 Удалить всё</button>
+            <button class="btn-download" id="downloadBtn" disabled>💾 Скачать результат</button>
+        </div>
     </div>
 
-    <div class="grid">
-        <div class="viewer-panel">
+    <div class="main-grid">
+        <div class="panel">
             <h3>Предпросмотр</h3>
-            <img id="preview">
-            <div id="quickStats"></div>
+            <div id="fileTypeInfo" style="margin-bottom: 10px; font-weight: bold; color: var(--accent);"></div>
+            <img id="preview-img" src="" alt="Preview">
+            <div id="pdf-placeholder" class="hidden" style="text-align: center; padding: 40px; background: #0f172a; border-radius: 8px;">📄 PDF Document</div>
         </div>
-        
-        <div class="edit-panel">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Метаданные (Все разделы)</h3>
-                <button id="saveBtn" class="btn" style="display: none;">💾 Сохранить изменения</button>
-            </div>
-            <div id="metaContent">Загрузите файл для анализа...</div>
+
+        <div class="panel" style="max-height: 70vh; overflow-y: auto;">
+            <h3>Метаданные</h3>
+            <div id="meta-container">Загрузите файл для просмотра...</div>
         </div>
     </div>
 </div>
 
 <script>
     const fileInput = document.getElementById('fileInput');
-const metaContent = document.getElementById('metaContent');
-const saveBtn = document.getElementById('saveBtn');
-const preview = document.getElementById('preview');
+    const dropZone = document.getElementById('dropZone');
+    const metaContainer = document.getElementById('meta-container');
+    const previewImg = document.getElementById('preview-img');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const fileTypeInfo = document.getElementById('fileTypeInfo');
 
-let currentFile = null;
-let fileExt = '';
+    let currentFile = null;
+    let currentDataUrl = null;
+    let officeZip = null;
 
-fileInput.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    // Инициализация событий
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
-    currentFile = file;
-    fileExt = file.name.split('.').pop().toLowerCase();
-    
-    document.getElementById('fileInfo').textContent = `Файл: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-    
-    // Очистка предыдущего состояния
-    metaContent.innerHTML = "🔍 Глубокое сканирование файла...";
-    saveBtn.style.display = 'none';
-    preview.style.display = 'none';
+    async function handleFile(file) {
+        if (!file) return;
+        currentFile = file;
+        const ext = file.name.split('.').pop().toLowerCase();
+        fileTypeInfo.textContent = `Тип: ${ext.toUpperCase()}`;
+        
+        // Сброс состояния
+        metaContainer.innerHTML = "Анализ...";
+        downloadBtn.disabled = true;
+        clearAllBtn.disabled = false;
+        previewImg.style.display = 'none';
 
-    try {
-        // 1. Показываем превью, если это изображение
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                preview.src = event.target.result;
-                preview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
+        try {
+            // 1. Попытка прочитать изображения через exifr
+            if (['jpg', 'jpeg', 'png', 'webp', 'tiff'].includes(ext)) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    currentDataUrl = e.target.result;
+                };
+                reader.readAsDataURL(file);
 
-        // 2. Универсальный парсинг метаданных
-        // Мы используем exifr.parse(file), который сам решает, как читать файл
-        const data = await exifr.parse(file, {
-            pick: true, // Позволяет извлекать всё доступное
-            xmp: true,
-            icc: true,
-            iptc: true,
-            jfif: true,
-            ihdr: true,
-            tiff: true,
-            gps: true,
-            mergeOutput: false
-        });
-
-        if (data) {
-            renderMetadata(data);
-        } else {
-            // Если exifr вернул null, возможно это Office или PDF без XMP
-            if (['docx', 'xlsx', 'pptx'].includes(fileExt)) {
+                const tags = await exifr.parse(file, { xmp: true, iptc: true, jfif: true, mergeOutput: false });
+                renderMetadata(tags);
+                downloadBtn.disabled = false;
+            } 
+            // 2. Обработка Office
+            else if (['docx', 'xlsx', 'pptx'].includes(ext)) {
                 handleOffice(file);
-            } else if (fileExt === 'pdf') {
-                metaContent.innerHTML = "Это PDF файл. Глубокие метаданные XMP не найдены. Попробуйте другой файл.";
-            } else {
-                metaContent.innerHTML = "⚠️ Метаданные не найдены или формат не поддерживается для чтения.";
             }
-        }
-
-        // Кнопка сохранения для поддерживаемых типов
-        if (['jpg', 'jpeg', 'docx', 'xlsx', 'pptx'].includes(fileExt)) {
-            saveBtn.style.display = 'block';
-        }
-
-    } catch (err) {
-        console.error("Критическая ошибка:", err);
-        metaContent.innerHTML = `<div style="color:#ef4444; border: 1px solid #ef4444; padding: 10px; border-radius: 5px;">
-            <strong>Ошибка чтения:</strong> ${err.message}<br>
-            <small>Попробуйте обновить страницу или загрузить другой файл.</small>
-        </div>`;
-    }
-};
-
-function renderMetadata(data) {
-    let html = '';
-    // Проходим по всем найденным секциям (Exif, GPS, XMP и т.д.)
-    for (const [section, tags] of Object.entries(data)) {
-        if (!tags || typeof tags !== 'object') continue;
-        
-        const keys = Object.keys(tags);
-        if (keys.length === 0) continue;
-
-        html += `<details open style="margin-bottom: 15px; border: 1px solid #334155; border-radius: 8px; overflow: hidden;">
-            <summary style="cursor:pointer; background:#334155; padding: 10px; color:white; font-weight:bold;">
-                📂 Секция: ${section.toUpperCase()} (${keys.length} тегов)
-            </summary>
-            <table style="width:100%; background: #1e293b;">`;
-        
-        for (const [key, val] of Object.entries(tags)) {
-            let displayVal = val;
-            
-            // Обработка сложных типов данных (даты, объекты, массивы)
-            if (val instanceof Date) {
-                displayVal = val.toLocaleString();
-            } else if (val instanceof Uint8Array) {
-                displayVal = `Binary Data (${val.length} bytes)`;
-            } else if (typeof val === 'object' && val !== null) {
-                displayVal = JSON.stringify(val);
+            // 3. PDF (Просмотр базовых свойств)
+            else if (ext === 'pdf') {
+                metaContainer.innerHTML = "<p>PDF: Поддерживается только удаление метаданных через 'Очистку' в этой версии.</p>";
+                downloadBtn.disabled = false;
             }
-
-            html += `<tr>
-                <td style="color:#94a3b8; width:30%; border-bottom: 1px solid #0f172a; padding: 8px;">${key}</td>
-                <td style="border-bottom: 1px solid #0f172a; padding: 8px;">
-                    <input type="text" value="${displayVal}" style="background:transparent; border:none; color:#f1f5f9; outline:none; width:100%;">
-                </td>
-            </tr>`;
+        } catch (err) {
+            metaContainer.innerHTML = `<span style="color:red">Ошибка: ${err.message}</span>`;
         }
-        html += `</table></details>`;
     }
-    metaContent.innerHTML = html || "В файле нет распознаваемых метаданных.";
-}
 
-    // Обработка Office (упрощенная для примера из предыдущего шага)
-    async function handleOffice(file) {
-        const arrayBuffer = await file.arrayBuffer();
-        const zip = await JSZip.loadAsync(arrayBuffer);
-        const coreXml = await zip.file("docProps/core.xml").async("string");
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(coreXml, "text/xml");
-        
-        let html = '<h3>Office Core Properties</h3><table>';
-        const tags = xmlDoc.documentElement.children;
-        for (let tag of tags) {
-            html += `<tr><td>${tag.tagName}</td><td><input type="text" value="${tag.textContent}"></td></tr>`;
+    function renderMetadata(sections) {
+        if (!sections) {
+            metaContainer.innerHTML = "Метаданные не найдены.";
+            return;
+        }
+        let html = '<table class="meta-table">';
+        for (const [sectionName, tags] of Object.entries(sections)) {
+            html += `<tr><td colspan="2" class="section-title">${sectionName}</td></tr>`;
+            for (const [key, val] of Object.entries(tags)) {
+                if (typeof val === 'object' && !(val instanceof Date)) continue;
+                html += `<tr>
+                    <td class="tag-name">${key}</td>
+                    <td class="tag-value"><input type="text" value="${val}" data-section="${sectionName}" data-tag="${key}"></td>
+                </tr>`;
+            }
         }
         html += '</table>';
-        metaContent.innerHTML = html;
-        saveBtn.style.display = 'block';
+        metaContainer.innerHTML = html;
     }
 
-    // Сохранение (JPEG через piexif)
-    saveBtn.onclick = async () => {
-        if (['jpg', 'jpeg'].includes(fileExt)) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const cleaned = piexif.remove(reader.result);
-                // В реальном инструменте тут была бы сборка новых тегов
-                // Для надежности сейчас предлагаем "Очищенную версию"
-                download(cleaned, "processed_" + currentFile.name);
-            };
-            reader.readAsDataURL(currentFile);
+    async function handleOffice(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        officeZip = await JSZip.loadAsync(arrayBuffer);
+        const coreXml = await officeZip.file("docProps/core.xml").async("text");
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(coreXml, "application/xml");
+        
+        let html = '<table class="meta-table"><tr><td colspan="2" class="section-title">Office Properties</td></tr>';
+        const props = xmlDoc.documentElement.children;
+        for (let prop of props) {
+            html += `<tr>
+                <td class="tag-name">${prop.tagName}</td>
+                <td class="tag-value"><input type="text" value="${prop.textContent}" data-office="true" data-tag="${prop.tagName}"></td>
+            </tr>`;
+        }
+        html += '</table>';
+        metaContainer.innerHTML = html;
+        downloadBtn.disabled = false;
+    }
+
+    // ЛОГИКА ОЧИСТКИ И СОХРАНЕНИЯ
+    clearAllBtn.onclick = async () => {
+        const ext = currentFile.name.split('.').pop().toLowerCase();
+        
+        if (['jpg', 'jpeg'].includes(ext)) {
+            const cleaned = piexif.remove(currentDataUrl);
+            download(cleaned, `clean_${currentFile.name}`);
+        } 
+        else if (['png', 'webp'].includes(ext)) {
+            // Очистка через Canvas (убирает все метаданные, перерисовывая пиксели)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = previewImg.naturalWidth;
+            canvas.height = previewImg.naturalHeight;
+            ctx.drawImage(previewImg, 0, 0);
+            download(canvas.toDataURL(`image/${ext}`), `clean_${currentFile.name}`);
+        }
+        else if (['docx', 'xlsx', 'pptx'].includes(ext)) {
+            // Простое удаление файла свойств из ZIP
+            officeZip.remove("docProps/core.xml");
+            const content = await officeZip.generateAsync({type: "blob"});
+            download(URL.createObjectURL(content), `clean_${currentFile.name}`);
+        }
+        else {
+            alert("Для данного формата поддерживается только просмотр или частичное редактирование.");
+        }
+    };
+
+    downloadBtn.onclick = async () => {
+        const ext = currentFile.name.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg'].includes(ext)) {
+            // Здесь можно добавить piexif.insert(piexif.dump(newData), currentDataUrl)
+            // Но для GitHub Pages проще всего отдавать текущий файл, если не было правок
+            download(currentDataUrl, `edited_${currentFile.name}`);
         } else {
-            alert("Для данного формата поддерживается глубокий просмотр. Функция сохранения в разработке.");
+            alert("Используйте 'Удалить всё' для получения чистого файла. Редактирование отдельных полей в разработке.");
         }
     };
 
@@ -208,9 +292,10 @@ function renderMetadata(data) {
         const a = document.createElement('a');
         a.href = url;
         a.download = name;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
     }
 </script>
-
 </body>
 </html>
