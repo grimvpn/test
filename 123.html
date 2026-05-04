@@ -2,134 +2,178 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultra Metadata Cleaner</title>
-    <!-- Подключаем мощную либу для PDF -->
+    <title>Ultimate Metadata Editor</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: #1e1e1e; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 450px; text-align: center; }
-        h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #00ff88; }
-        #drop-zone { border: 2px dashed #444; padding: 40px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        #drop-zone:hover { border-color: #00ff88; background: #252525; }
-        .status { margin-top: 1rem; font-size: 0.9rem; min-height: 1.2em; }
-        #download-link { display: none; margin-top: 15px; background: #00ff88; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; }
-        .loader { display: none; border: 3px solid #333; border-top: 3px solid #00ff88; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 10px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        :root { --accent: #00ff88; --bg: #0f0f0f; --card: #1a1a1a; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; justify-content: center; padding: 20px; }
+        .app-container { background: var(--card); border-radius: 15px; padding: 30px; width: 100%; max-width: 600px; box-shadow: 0 10px 50px rgba(0,0,0,0.7); border: 1px solid #333; }
+        h1 { text-align: center; color: var(--accent); font-size: 1.8rem; margin-bottom: 25px; }
+        #drop-area { border: 2px dashed #444; border-radius: 10px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
+        #drop-area:hover { border-color: var(--accent); background: #222; }
+        .metadata-form { display: none; background: #252525; padding: 20px; border-radius: 10px; margin-top: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; background: #111; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-save { background: var(--accent); color: #000; }
+        .btn-clean { background: #ff4444; color: #fff; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        .status { text-align: center; margin-top: 15px; font-size: 0.9rem; color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Metadata Stripper Pro</h1>
-    <div id="drop-zone">Нажми или перетащи файл (PDF, JPG, PNG)</div>
-    <input type="file" id="file-input" style="display: none;">
-    
-    <div class="loader" id="loader"></div>
-    <div class="status" id="status">Готов к работе</div>
-    <a id="download-link">Скачать чистый файл</a>
+<div class="app-container">
+    <h1>Metadata Engine Pro</h1>
+    <div id="drop-area">Перетащите файл или нажмите для выбора (PDF, JPG, PNG)</div>
+    <input type="file" id="file-selector" style="display:none">
+
+    <div id="editor" class="metadata-form">
+        <div class="input-group">
+            <label>Название / Title</label>
+            <input type="text" id="m-title">
+        </div>
+        <div class="input-group">
+            <label>Автор / Author</label>
+            <input type="text" id="m-author">
+        </div>
+        <div class="input-group">
+            <label>Ключевые слова (через запятую)</label>
+            <input type="text" id="m-keywords">
+        </div>
+        <div class="btn-group">
+            <button class="btn-clean" onclick="processFile(true)">Удалить всё</button>
+            <button class="btn-save" onclick="processFile(false)">Сохранить изменения</button>
+        </div>
+    </div>
+    <div id="status" class="status"></div>
 </div>
 
 <script>
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
+    const dropArea = document.getElementById('drop-area');
+    const fileSelector = document.getElementById('file-selector');
+    const editor = document.getElementById('editor');
     const status = document.getElementById('status');
-    const dlLink = document.getElementById('download-link');
-    const loader = document.getElementById('loader');
+    let currentFile = null;
 
-    dropZone.onclick = () => fileInput.click();
+    dropArea.onclick = () => fileSelector.click();
+    fileSelector.onchange = (e) => loadFile(e.target.files[0]);
 
-    fileInput.onchange = (e) => handleFile(e.target.files[0]);
-
-    async function handleFile(file) {
+    // Загрузка и первичный анализ
+    async function loadFile(file) {
         if (!file) return;
+        currentFile = file;
+        status.innerText = "Анализ структуры...";
+        editor.style.display = "block";
         
-        status.innerText = "Обработка...";
-        status.style.color = "#00ff88";
-        loader.style.display = "block";
-        dlLink.style.display = "none";
+        // Очистка полей перед загрузкой новых
+        document.querySelectorAll('.metadata-form input').forEach(i => i.value = "");
 
-        try {
-            if (file.type === "application/pdf") {
-                await cleanPDF(file);
-            } else if (file.type.startsWith("image/")) {
-                await cleanImage(file);
-            } else {
-                throw new Error("Формат не поддерживается");
+        if (file.type === "application/pdf") {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+                document.getElementById('m-title').value = pdfDoc.getTitle() || "";
+                document.getElementById('m-author').value = pdfDoc.getAuthor() || "";
+                document.getElementById('m-keywords').value = (pdfDoc.getKeywords() || "");
+                status.innerText = "PDF загружен. Можно редактировать.";
+            } catch (e) {
+                status.innerText = "Ошибка доступа к PDF. Файл может быть поврежден.";
             }
-        } catch (err) {
-            status.innerText = "Ошибка: " + err.message;
-            status.style.color = "#ff4444";
-        } finally {
-            loader.style.display = "none";
+        } else {
+            status.innerText = "Изображение готово к обработке.";
         }
     }
 
-    // ГЛУБОКАЯ ОЧИСТКА PDF
-    async function cleanPDF(file) {
-        const arrayBuffer = await file.arrayBuffer();
-        // Загружаем PDF с игнорированием ошибок структуры
+    // Основной процесс (Сохранение или Очистка)
+    async function processFile(stripAll) {
+        if (!currentFile) return;
+        status.innerText = "Обработка...";
+
+        const meta = {
+            title: stripAll ? "" : document.getElementById('m-title').value,
+            author: stripAll ? "" : document.getElementById('m-author').value,
+            keywords: stripAll ? "" : document.getElementById('m-keywords').value
+        };
+
+        try {
+            if (currentFile.type === "application/pdf") {
+                await handlePDF(meta, stripAll);
+            } else if (currentFile.type === "image/jpeg" || currentFile.type === "image/jpg") {
+                await handleJPEG(meta, stripAll);
+            } else {
+                await handleUniversalImage(stripAll);
+            }
+        } catch (e) {
+            console.error(e);
+            status.innerText = "Ошибка: " + e.message;
+        }
+    }
+
+    async function handlePDF(meta, stripAll) {
+        const arrayBuffer = await currentFile.arrayBuffer();
         const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         
-        // Удаляем стандартные метаданные
-        pdfDoc.setTitle('');
-        pdfDoc.setAuthor('');
-        pdfDoc.setSubject('');
-        pdfDoc.setCreator('');
-        pdfDoc.setKeywords([]);
-        pdfDoc.setProducer('');
-        pdfDoc.setCreationDate(new Date(0));
-        pdfDoc.setModificationDate(new Date(0));
+        pdfDoc.setTitle(meta.title);
+        pdfDoc.setAuthor(meta.author);
+        pdfDoc.setKeywords(meta.keywords.split(','));
+        pdfDoc.setProducer(stripAll ? "" : "Pro Metadata Engine");
+        pdfDoc.setCreator(stripAll ? "" : "Universal Tools");
 
-        // Удаляем XMP метаданные (те самые скрытые XML блоки)
-        const entries = pdfDoc.context.enumerateIndirectObjects();
-        entries.forEach(([ref, obj]) => {
-            if (obj instanceof PDFLib.PDFStream) {
-                const metadata = obj.dict.get(PDFLib.PDFName.of('Type'));
-                if (metadata === PDFLib.PDFName.of('Metadata')) {
+        if (stripAll) {
+            // Удаление скрытых XMP метаданных через низкоуровневый доступ
+            const refs = pdfDoc.context.enumerateIndirectObjects();
+            refs.forEach(([ref, obj]) => {
+                if (obj instanceof PDFLib.PDFStream && obj.dict.get(PDFLib.PDFName.of('Type')) === PDFLib.PDFName.of('Metadata')) {
                     pdfDoc.context.delete(ref);
                 }
+            });
+        }
+
+        const bytes = await pdfDoc.save();
+        download(new Blob([bytes]), currentFile.name);
+    }
+
+    async function handleJPEG(meta, stripAll) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let jpegData = e.target.result;
+            if (stripAll) {
+                jpegData = piexif.remove(jpegData);
+            } else {
+                const exifObj = {"0th":{}, "Exif":{}, "GPS":{}};
+                exifObj["0th"][piexif.ImageIFD.Title] = meta.title;
+                exifObj["0th"][piexif.ImageIFD.Author] = meta.author;
+                const exifBytes = piexif.dump(exifObj);
+                jpegData = piexif.insert(exifBytes, jpegData);
             }
-        });
-
-        const pdfBytes = await pdfDoc.save();
-        triggerDownload(new Blob([pdfBytes], { type: 'application/pdf' }), "clean_" + file.name);
+            fetch(jpegData).then(res => res.blob()).then(blob => download(blob, currentFile.name));
+        };
+        reader.readAsDataURL(currentFile);
     }
 
-    // ГЛУБОКАЯ ОЧИСТКА КАРТИНОК (Через Canvas)
-    async function cleanImage(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    // Рисуем изображение на холст. EXIF при этом не переносится.
-                    ctx.drawImage(img, 0, 0);
-                    
-                    canvas.toBlob((blob) => {
-                        triggerDownload(blob, "clean_" + file.name);
-                        resolve();
-                    }, file.type, 0.9);
-                };
-                img.onerror = () => reject(new Error("Не удалось прочитать изображение"));
-            };
-        });
+    async function handleUniversalImage(stripAll) {
+        // Метод перерисовки для PNG/WebP (гарантирует очистку)
+        const img = new Image();
+        img.src = URL.createObjectURL(currentFile);
+        await img.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.toBlob((blob) => download(blob, currentFile.name), currentFile.type);
     }
 
-    function triggerDownload(blob, name) {
-        const url = URL.createObjectURL(blob);
-        dlLink.href = url;
-        dlLink.download = name;
-        dlLink.style.display = "inline-block";
-        status.innerText = "Готово! Метаданные стерты.";
+    function download(blob, name) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "PRO_" + name;
+        link.click();
+        status.innerText = "Файл успешно обработан и скачан!";
     }
 </script>
-
 </body>
 </html>
