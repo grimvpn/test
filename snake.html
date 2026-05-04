@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Кастомная Змейка</title>
+    <title>Змейка</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,6 @@
             align-items: center;
             margin: 0;
             padding: 10px;
-            /* Убираем выделение текста при тапах на телефоне */
             user-select: none; 
             -webkit-user-select: none;
         }
@@ -52,15 +51,15 @@
             justify-content: space-between;
             width: 100%;
         }
-        /* Адаптивный холст */
+
         canvas {
             background-color: #000;
             border: 4px solid #4CAF50;
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
             width: 100%;
-            aspect-ratio: 1 / 1; /* Сохраняем квадратные пропорции */
-            touch-action: none; /* Запрещаем скролл при свайпах по холсту */
+            aspect-ratio: 1 / 1;
+            touch-action: none;
         }
         .settings-panel {
             background: #32324e;
@@ -143,15 +142,14 @@
         .win-text { color: #FFD700; }
         .lose-text { color: #FF5252; }
 
-        /* Стили Джойстика */
         .joystick-container {
-            display: none; /* Скрыт по умолчанию */
+            display: none;
             grid-template-columns: repeat(3, 60px);
             grid-template-rows: repeat(3, 60px);
             gap: 10px;
             margin-top: 20px;
             justify-content: center;
-            touch-action: manipulation; /* Улучшает отклик на мобилках */
+            touch-action: manipulation;
         }
         .joy-btn {
             background: rgba(76, 175, 80, 0.2);
@@ -170,7 +168,6 @@
         }
         .joy-empty { background: transparent; border: none; }
 
-        /* Адаптивность для мобильных устройств */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -190,19 +187,16 @@
 </head>
 <body>
 
-    <h1>🐍 Кастомная Змейка 🐍</h1>
+    <h1>🐍 Змейка 🐍</h1>
 
     <div class="container">
-        <!-- Игровое поле -->
         <div class="game-area">
             <div class="score-board">
                 <span>Счет: <span id="scoreDisplay">0</span></span>
                 <span>Цель: <span id="targetDisplay">Бесконечно</span></span>
             </div>
-            <!-- Фиксированный размер холста, масштабируется через CSS -->
             <canvas id="gameCanvas" width="400" height="400"></canvas>
             
-            <!-- Джойстик -->
             <div id="joystickControls" class="joystick-container">
                 <div class="joy-empty"></div>
                 <div class="joy-btn" onpointerdown="handleJoy('up')">⬆️</div>
@@ -215,7 +209,6 @@
                 <div class="joy-empty"></div>
             </div>
 
-            <!-- Окно конца игры -->
             <div id="gameOverOverlay" class="overlay">
                 <h2 id="endMessage">Игра окончена!</h2>
                 <p>Ваш счет: <span id="finalScore">0</span></p>
@@ -223,7 +216,6 @@
             </div>
         </div>
 
-        <!-- Панель настроек -->
         <div class="settings-panel">
             <h3>Настройки игры</h3>
             
@@ -266,19 +258,16 @@
         </div>
     </div>
 
-    <!-- Аудио файлы -->
-    <audio id="soundGameOver" src="gameover.mp4"></audio>
-    <audio id="soundVictory" src="victori.mp4"></audio>
+    <audio id="soundGameOver" src="loss.mp3"></audio>
+    <audio id="soundVictory" src="victory.mp3"></audio>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         
-        // Звуки
         const soundGameOver = document.getElementById("soundGameOver");
         const soundVictory = document.getElementById("soundVictory");
 
-        // Элементы UI
         const scoreDisplay = document.getElementById("scoreDisplay");
         const targetDisplay = document.getElementById("targetDisplay");
         const overlay = document.getElementById("gameOverOverlay");
@@ -286,14 +275,12 @@
         const finalScore = document.getElementById("finalScore");
         const joystickContainer = document.getElementById("joystickControls");
 
-        // Настройки из UI
         let winScoreLimit = Infinity;
         let speed = 100;
         let snakeColor = "#4CAF50";
         let foodColor = "#FF5252";
         let gridColor = "#000000";
 
-        // Игровые переменные
         const tileSize = 20;
         const tileCount = canvas.width / tileSize; // 400 / 20 = 20
         let snake = [];
@@ -306,16 +293,13 @@
         let changingDirection = false;
         let isGameRunning = false;
 
-        // Управление с клавиатуры
         document.addEventListener("keydown", changeDirection);
 
-        // Функция показа/скрытия джойстика
         function toggleJoystick() {
             const isChecked = document.getElementById("useJoystick").checked;
             joystickContainer.style.display = isChecked ? "grid" : "none";
         }
 
-        // Применяем настройки перед стартом
         function applySettings() {
             const scoreInput = document.getElementById("winScore").value;
             // Если поле пустое или не число, ставим Infinity (бесконечность)
@@ -332,13 +316,11 @@
         function startGame() {
             applySettings();
             
-            // Остановка звуков
             soundGameOver.pause();
             soundGameOver.currentTime = 0;
             soundVictory.pause();
             soundVictory.currentTime = 0;
 
-            // Сброс состояния
             snake = [
                 { x: 10, y: 10 },
                 { x: 9, y: 10 },
@@ -364,7 +346,6 @@
             
             const head = { x: snake[0].x + dx, y: snake[0].y + dy };
             
-            // Проверка на проигрыш
             if (isCollision(head)) {
                 endGame(false);
                 return;
@@ -372,12 +353,10 @@
             
             snake.unshift(head);
             
-            // Еда съедена
             if (head.x === foodX && head.y === foodY) {
                 score++;
                 scoreDisplay.innerText = score;
                 
-                // Проверка на победу (если не бесконечный режим)
                 if (score >= winScoreLimit) {
                     endGame(true);
                     return;
@@ -432,7 +411,6 @@
             }
         }
 
-        // Общая логика смены направления
         function setDirection(newDx, newDy) {
             if (changingDirection || !isGameRunning) return;
             const goingUp = dy === -1;
@@ -446,7 +424,6 @@
             if (newDy === 1 && !goingUp)     { dx = 0; dy = 1; changingDirection = true; }
         }
 
-        // Обработка клавиатуры
         function changeDirection(event) {
             const key = event.key.toLowerCase();
             if (key === "arrowleft" || key === "a" || key === "ф") setDirection(-1, 0);
@@ -455,7 +432,6 @@
             if (key === "arrowdown" || key === "s" || key === "ы") setDirection(0, 1);
         }
 
-        // Обработка кликов/тапов по джойстику
         function handleJoy(dir) {
             if (dir === 'left') setDirection(-1, 0);
             if (dir === 'right') setDirection(1, 0);
