@@ -3,68 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моя Интерактивная Карта</title>
+    <title>Карта с детальным адресом</title>
 
-    <!-- 1. Подключаем стили Leaflet (Обязательно до скриптов) -->
+    <!-- Подключаем стили Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
           crossorigin=""/>
 
-    <!-- 2. Подключаем сам скрипт Leaflet -->
+    <!-- Подключаем скрипт Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
             crossorigin=""></script>
 
     <style>
-        /* Убираем стандартные отступы браузера, чтобы карта была на весь экран */
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
+            font-family: Arial, sans-serif;
         }
-        
-        /* Задаем размеры контейнеру карты (обязательно!) */
         #map {
             width: 100%;
-            height: 100vh; /* 100vh означает 100% высоты видимого экрана */
+            height: 100vh;
+        }
+        /* Делаем текст в попапе немного красивее */
+        .address-popup {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .address-popup b {
+            color: #d9534f;
         }
     </style>
 </head>
 <body>
 
-    <!-- 3. Контейнер, в котором будет отрисована карта -->
     <div id="map"></div>
 
     <script>
-        // 4. Инициализация карты
-        // Указываем ID контейнера ('map'), координаты центра [Широта, Долгота] и масштаб (13)
-        // Сейчас координаты указывают на центр Москвы
-        var map = L.map('map').setView([55.751244, 37.618423], 13);
+        // 1. Инициализация карты (центр Москвы)
+        var map = L.map('map').setView([55.751244, 37.618423], 15);
 
-        // 5. Подключаем слой с самими картинками карты (Тайлы)
-        // Используем OpenStreetMap - он абсолютно бесплатный и не требует API ключа
+        // 2. Подключаем слой карты OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 6. Ставим маркер на карту
-        var marker = L.marker([55.751244, 37.618423]).addTo(map);
-
-        // 7. Добавляем всплывающее окно (попап), которое открывается сразу при загрузке
-        marker.bindPopup("<b>Привет!</b><br>Это твоя первая карта на Leaflet.").openPopup();
-
-        // 8. БОНУС: Делаем карту интерактивной!
-        // Этот код будет показывать всплывающее окно с координатами того места, куда кликнул пользователь
+        // 3. Создаем объект попапа (всплывающего окна)
         var popup = L.popup();
 
+        // 4. Функция, которая срабатывает при клике на карту
         function onMapClick(e) {
+            var lat = e.latlng.lat;
+            var lng = e.latlng.lng;
+
+            // Сначала показываем пользователю, что идет загрузка
             popup
                 .setLatLng(e.latlng)
-                .setContent("Вы кликнули по координатам: " + e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5))
+                .setContent("<div class='address-popup'><i>Ищем адрес... ⏳</i></div>")
                 .openOn(map);
+
+            // 5. Обращаемся к API Nominatim для обратного геокодирования
+            // Параметры: format=json (получить ответ в коде), accept-language=ru (просить адрес на русском)
+            var url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=ru`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.address) {
+                        // Собираем адрес по кусочкам, если они есть
+                        var addr = data.address;
+                        var road = addr.road || addr.pedestrian || addr.path || "Улица неизвестна";
+                        var house = addr.house_number || "Без номера";
+                        var city = addr.city || addr.town || addr.village || addr.state || "Город неизвестен";
+                        var fullAddress = data.display_name; // Полная строка со всеми данными
+
+                        // Формируем красивый HTML для всплывающего окна
+                        var content = `
+                            <div class='address-popup'>
+                                <b>Улица:</b> ${road}, ${house}<br>
+                                <b>Населенный пункт:</b> ${city}<br>
+                                <hr style="margin: 5px 0;">
+                                <span style="font-size: 12px; color: gray;">
+                                    <b>Полный адрес:</b> ${fullAddress}<br>
+                                    <b>Координаты:</b> ${lat.toFixed(5)}, ${lng.toFixed(5)}
+                                </span>
+                            </div>
+                        `;
+                        
+                        // Обновляем текст во всплывающем окне
+                        popup.setContent(content);
+                    } else {
+                        // Если кликнули в чистое поле или океан
+                        popup.setContent("<div class='address-popup'><b>Адрес не найден</b><br>Координаты: " + lat.toFixed(5) + ", " + lng.toFixed(5) + "</div>");
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при поиске адреса:', error);
+                    popup.setContent("Произошла ошибка при загрузке адреса. Сервер недоступен.");
+                });
         }
 
+        // Привязываем функцию к событию клика по карте
         map.on('click', onMapClick);
     </script>
 
