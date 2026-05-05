@@ -80,7 +80,6 @@
 
         h2 { margin-top: 0; color: var(--secondary); }
 
-        /* Формы */
         .form-group { margin-bottom: 20px; }
         
         label { 
@@ -124,7 +123,6 @@
             cursor: pointer;
         }
 
-        /* Сетка спецсимволов */
         .symbols-header {
             display: flex;
             justify-content: space-between;
@@ -160,7 +158,6 @@
         .symbol-item input { margin-right: 4px; cursor: pointer; }
         .symbol-item label { margin: 0; font-family: monospace; font-size: 16px; cursor: pointer; }
 
-        /* Кнопки и результат */
         button.action-btn { 
             width: 100%; 
             padding: 14px; 
@@ -190,13 +187,13 @@
             letter-spacing: 1px;
             word-break: break-all; 
             border: 2px dashed #bdc3c7;
-            display: none; /* Скрыто до генерации */
+            display: none;
         }
 
         .qr-result { 
             text-align: center; 
             margin-top: 25px; 
-            display: none; /* Скрыто до генерации */
+            display: none;
             align-items: center;
             justify-content: center;
         }
@@ -210,14 +207,12 @@
 </head>
 <body>
     <div class="container">
-        <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab('password-tab', this)">🔑 Пароли</button>
             <button class="tab-btn" onclick="openTab('names-tab', this)">🎮 Ники</button>
             <button class="tab-btn" onclick="openTab('qr-tab', this)">📱 QR-коды</button>
         </div>
 
-        <!-- 1. Генератор паролей -->
         <div id="password-tab" class="tab-content active">
             <h2>Генератор надежных паролей</h2>
             <div class="form-group">
@@ -246,7 +241,6 @@
                         <a href="#" onclick="toggleSymbols(false); return false;">Снять все</a>
                     </div>
                 </div>
-                <!-- Сетка символов будет сгенерирована через JS -->
                 <div class="symbols-grid" id="symbols-container"></div>
             </div>
 
@@ -254,7 +248,6 @@
             <div class="result-box" id="pass-result"></div>
         </div>
 
-        <!-- 2. Процедурный Генератор Ников -->
         <div id="names-tab" class="tab-content">
             <h2>Процедурный генератор ников</h2>
             <p style="color: #666; font-size: 14px; margin-top: -10px; margin-bottom: 20px;">
@@ -272,7 +265,6 @@
             <div class="result-box" id="name-result"></div>
         </div>
 
-        <!-- 3. Генератор QR-кодов -->
         <div id="qr-tab" class="tab-content">
             <h2>Создание QR-кода</h2>
             <div class="form-group">
@@ -285,7 +277,6 @@
     </div>
 
     <script>
-        // --- Инициализация при загрузке страницы ---
         document.addEventListener("DOMContentLoaded", () => {
             // Создаем галочки для каждого спецсимвола
             const symbolsList = "!@#$%^&*()-_=+[]{};:'\",.<>/?\\|~`".split('');
@@ -311,7 +302,6 @@
             });
         });
 
-        // --- Логика переключения вкладок ---
         function openTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -319,13 +309,11 @@
             btnElement.classList.add('active');
         }
 
-        // --- Функция для "Выбрать все / Снять все" символы ---
         function toggleSymbols(state) {
             const checkboxes = document.querySelectorAll('#symbols-container input[type="checkbox"]');
             checkboxes.forEach(cb => cb.checked = state);
         }
 
-        // --- Логика генератора паролей ---
         function generatePassword() {
             const length = parseInt(document.getElementById('pass-length').value);
             const hasUpper = document.getElementById('pass-upper').checked;
@@ -337,7 +325,6 @@
             if (hasLower) charPool += "abcdefghijklmnopqrstuvwxyz";
             if (hasNumbers) charPool += "0123456789";
 
-            // Собираем отмеченные индивидуальные символы
             const activeSymbols = document.querySelectorAll('#symbols-container input[type="checkbox"]:checked');
             activeSymbols.forEach(cb => {
                 charPool += cb.value;
@@ -355,7 +342,6 @@
             resultBox.style.color = "var(--text)";
             let password = "";
             
-            // Защита от криптографически слабых рандомов
             const randomValues = new Uint32Array(length);
             window.crypto.getRandomValues(randomValues);
 
@@ -366,7 +352,6 @@
             resultBox.innerText = password;
         }
 
-        // --- ПРОЦЕДУРНАЯ Логика генератора ников (на английском) ---
         function generateNickname() {
             const length = parseInt(document.getElementById('nick-length').value);
             const useNumbers = document.getElementById('nick-numbers').checked;
@@ -378,15 +363,12 @@
                 return;
             }
 
-            // Блоки для слогов: гласные и согласные (включая популярные сочетания из английского)
             const vowels = ["a", "e", "i", "o", "u", "y", "ae", "ea", "oo", "ou", "ai", "ee"];
             const consonants = ["b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "v", "w", "x", "z", "th", "sh", "ch", "kr", "dr", "tr", "gr", "st", "sp", "bl", "cl", "fl", "gl", "pl", "sl", "br", "cr", "fr", "pr"];
             
             let nickname = "";
-            // Случайно решаем, с чего начать ник: с гласной или согласной
             let isVowel = Math.random() > 0.5;
 
-            // Строим ник, чередуя гласные и согласные
             while (nickname.length < length) {
                 let chunk = "";
                 if (isVowel) {
@@ -396,16 +378,13 @@
                 }
                 
                 nickname += chunk;
-                isVowel = !isVowel; // Смена типа для следующей итерации
+                isVowel = !isVowel;
             }
             
-            // Обрезаем, если длина превысила нужную из-за двойных буквосочетаний
             nickname = nickname.slice(0, length);
             
-            // Делаем первую букву заглавной
             nickname = nickname.charAt(0).toUpperCase() + nickname.slice(1);
 
-            // Добавляем цифры в конец, если выбрано
             if (useNumbers) {
                 const numLen = Math.floor(Math.random() * 3) + 2; // от 2 до 4 цифр
                 let numStr = "";
@@ -419,7 +398,6 @@
             resultBox.style.display = 'block';
         }
 
-        // --- Логика генератора QR-кодов ---
         function generateQR() {
             const input = document.getElementById('qr-input').value.trim();
             const resultBox = document.getElementById('qr-result');
