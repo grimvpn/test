@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мульти-Генератор</title>
+    <title>Продвинутый Мульти-Генератор</title>
     <style>
         :root {
-            --primary: #3498db;
-            --primary-hover: #2980b9;
+            --primary: #8e44ad;
+            --primary-hover: #9b59b6;
             --secondary: #2c3e50;
             --success: #27ae60;
             --success-hover: #2ecc71;
@@ -28,13 +28,13 @@
         .container { 
             background: #fff; 
             width: 100%; 
-            max-width: 600px; 
+            max-width: 650px; 
             border-radius: 12px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
             overflow: hidden; 
         }
 
-        /* Tabs Styles */
+        /* Вкладки */
         .tabs { 
             display: flex; 
             background: var(--secondary); 
@@ -62,7 +62,7 @@
             font-weight: bold; 
         }
 
-        /* Content Styles */
+        /* Контент вкладок */
         .tab-content { 
             padding: 30px; 
             display: none; 
@@ -80,7 +80,7 @@
 
         h2 { margin-top: 0; color: var(--secondary); }
 
-        /* Form Elements */
+        /* Формы */
         .form-group { margin-bottom: 20px; }
         
         label { 
@@ -90,7 +90,7 @@
             color: #555;
         }
 
-        input[type="text"], input[type="number"], select { 
+        input[type="text"], input[type="number"] { 
             width: 100%; 
             padding: 12px; 
             box-sizing: border-box; 
@@ -100,7 +100,7 @@
             transition: border-color 0.3s;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+        input[type="text"]:focus, input[type="number"]:focus {
             border-color: var(--primary);
             outline: none;
         }
@@ -124,6 +124,43 @@
             cursor: pointer;
         }
 
+        /* Сетка спецсимволов */
+        .symbols-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .symbols-header label { margin-bottom: 0; }
+        
+        .symbols-actions a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .symbols-actions a:hover { text-decoration: underline; }
+
+        .symbols-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 10px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .symbol-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .symbol-item input { margin-right: 4px; cursor: pointer; }
+        .symbol-item label { margin: 0; font-family: monospace; font-size: 16px; cursor: pointer; }
+
+        /* Кнопки и результат */
         button.action-btn { 
             width: 100%; 
             padding: 14px; 
@@ -135,6 +172,7 @@
             font-weight: bold;
             cursor: pointer; 
             transition: background 0.3s;
+            margin-top: 10px;
         }
 
         button.action-btn:hover { 
@@ -147,19 +185,18 @@
             background: #ecf0f1; 
             border-radius: 6px; 
             text-align: center; 
-            font-size: 22px; 
+            font-size: 24px; 
             font-weight: bold;
             letter-spacing: 1px;
             word-break: break-all; 
-            min-height: 30px;
             border: 2px dashed #bdc3c7;
+            display: none; /* Скрыто до генерации */
         }
 
         .qr-result { 
             text-align: center; 
             margin-top: 25px; 
-            min-height: 250px;
-            display: flex;
+            display: none; /* Скрыто до генерации */
             align-items: center;
             justify-content: center;
         }
@@ -176,7 +213,7 @@
         <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab('password-tab', this)">🔑 Пароли</button>
-            <button class="tab-btn" onclick="openTab('names-tab', this)">👤 Имена</button>
+            <button class="tab-btn" onclick="openTab('names-tab', this)">🎮 Ники</button>
             <button class="tab-btn" onclick="openTab('qr-tab', this)">📱 QR-коды</button>
         </div>
 
@@ -184,9 +221,10 @@
         <div id="password-tab" class="tab-content active">
             <h2>Генератор надежных паролей</h2>
             <div class="form-group">
-                <label>Длина пароля (4 - 64):</label>
-                <input type="number" id="pass-length" value="16" min="4" max="64">
+                <label>Длина пароля (4 - 128):</label>
+                <input type="number" id="pass-length" value="16" min="4" max="128">
             </div>
+            
             <div class="checkbox-group">
                 <input type="checkbox" id="pass-upper" checked> 
                 <label for="pass-upper">Заглавные буквы (A-Z)</label>
@@ -199,27 +237,39 @@
                 <input type="checkbox" id="pass-numbers" checked> 
                 <label for="pass-numbers">Цифры (0-9)</label>
             </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="pass-symbols" checked> 
-                <label for="pass-symbols">Спецсимволы (!@#$%^&*)</label>
+
+            <div class="form-group">
+                <div class="symbols-header">
+                    <label>Спецсимволы:</label>
+                    <div class="symbols-actions">
+                        <a href="#" onclick="toggleSymbols(true); return false;">Выбрать все</a> | 
+                        <a href="#" onclick="toggleSymbols(false); return false;">Снять все</a>
+                    </div>
+                </div>
+                <!-- Сетка символов будет сгенерирована через JS -->
+                <div class="symbols-grid" id="symbols-container"></div>
             </div>
+
             <button class="action-btn" onclick="generatePassword()">Сгенерировать пароль</button>
-            <div class="result-box" id="pass-result">Здесь появится пароль</div>
+            <div class="result-box" id="pass-result"></div>
         </div>
 
-        <!-- 2. Генератор имен -->
+        <!-- 2. Процедурный Генератор Ников -->
         <div id="names-tab" class="tab-content">
-            <h2>Генератор случайных имен</h2>
+            <h2>Процедурный генератор ников</h2>
+            <p style="color: #666; font-size: 14px; margin-top: -10px; margin-bottom: 20px;">
+                Генерирует уникальные английские слова по правилам построения слогов, а не берет из базы.
+            </p>
             <div class="form-group">
-                <label>Выберите пол:</label>
-                <select id="name-gender">
-                    <option value="any">Любой</option>
-                    <option value="male">Мужской</option>
-                    <option value="female">Женский</option>
-                </select>
+                <label>Длина ника (букв):</label>
+                <input type="number" id="nick-length" value="7" min="3" max="15">
             </div>
-            <button class="action-btn" onclick="generateName()">Сгенерировать имя</button>
-            <div class="result-box" id="name-result">Здесь появится имя</div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="nick-numbers"> 
+                <label for="nick-numbers">Добавить случайные цифры в конец (напр. Name99)</label>
+            </div>
+            <button class="action-btn" onclick="generateNickname()">Сгенерировать ник</button>
+            <div class="result-box" id="name-result"></div>
         </div>
 
         <!-- 3. Генератор QR-кодов -->
@@ -227,95 +277,146 @@
             <h2>Создание QR-кода</h2>
             <div class="form-group">
                 <label>Введите текст или ссылку URL:</label>
-                <input type="text" id="qr-input" placeholder="Например: https://google.com">
+                <input type="text" id="qr-input" placeholder="Например: https://example.com">
             </div>
             <button class="action-btn" onclick="generateQR()">Создать QR-код</button>
-            <div class="qr-result" id="qr-result">
-                <p style="color: #7f8c8d;">Введите текст и нажмите кнопку для генерации.</p>
-            </div>
+            <div class="qr-result" id="qr-result"></div>
         </div>
     </div>
 
     <script>
+        // --- Инициализация при загрузке страницы ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Создаем галочки для каждого спецсимвола
+            const symbolsList = "!@#$%^&*()-_=+[]{};:'\",.<>/?\\|~`".split('');
+            const container = document.getElementById('symbols-container');
+            
+            symbolsList.forEach((sym, index) => {
+                const div = document.createElement('div');
+                div.className = 'symbol-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = sym;
+                checkbox.id = 'sym-' + index;
+                checkbox.checked = true; // Включены по умолчанию
+                
+                const label = document.createElement('label');
+                label.htmlFor = 'sym-' + index;
+                label.innerText = sym;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        });
+
         // --- Логика переключения вкладок ---
         function openTab(tabId, btnElement) {
-            // Скрываем все вкладки
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            // Убираем активный класс у всех кнопок
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            // Показываем нужную вкладку и делаем кнопку активной
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             btnElement.classList.add('active');
         }
 
+        // --- Функция для "Выбрать все / Снять все" символы ---
+        function toggleSymbols(state) {
+            const checkboxes = document.querySelectorAll('#symbols-container input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = state);
+        }
+
         // --- Логика генератора паролей ---
         function generatePassword() {
-            const length = document.getElementById('pass-length').value;
+            const length = parseInt(document.getElementById('pass-length').value);
             const hasUpper = document.getElementById('pass-upper').checked;
             const hasLower = document.getElementById('pass-lower').checked;
             const hasNumbers = document.getElementById('pass-numbers').checked;
-            const hasSymbols = document.getElementById('pass-symbols').checked;
-
-            const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const lowerChars = "abcdefghijklmnopqrstuvwxyz";
-            const numberChars = "0123456789";
-            const symbolChars = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
 
             let charPool = "";
-            if (hasUpper) charPool += upperChars;
-            if (hasLower) charPool += lowerChars;
-            if (hasNumbers) charPool += numberChars;
-            if (hasSymbols) charPool += symbolChars;
+            if (hasUpper) charPool += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if (hasLower) charPool += "abcdefghijklmnopqrstuvwxyz";
+            if (hasNumbers) charPool += "0123456789";
+
+            // Собираем отмеченные индивидуальные символы
+            const activeSymbols = document.querySelectorAll('#symbols-container input[type="checkbox"]:checked');
+            activeSymbols.forEach(cb => {
+                charPool += cb.value;
+            });
 
             const resultBox = document.getElementById('pass-result');
+            resultBox.style.display = 'block'; // Показываем блок
 
-            if (charPool === "") {
-                resultBox.innerText = "Выберите хотя бы один тип символов!";
+            if (charPool === "" || length < 1) {
+                resultBox.innerText = "Выберите параметры генерации!";
                 resultBox.style.color = "red";
                 return;
             }
+            
             resultBox.style.color = "var(--text)";
-
             let password = "";
+            
+            // Защита от криптографически слабых рандомов
+            const randomValues = new Uint32Array(length);
+            window.crypto.getRandomValues(randomValues);
+
             for (let i = 0; i < length; i++) {
-                const randomIndex = Math.floor(Math.random() * charPool.length);
-                password += charPool[randomIndex];
+                password += charPool[randomValues[i] % charPool.length];
             }
             
             resultBox.innerText = password;
         }
 
-        // --- Логика генератора имен ---
-        const maleNames = ["Александр", "Дмитрий", "Максим", "Сергей", "Андрей", "Алексей", "Артём", "Илья", "Кирилл", "Михаил", "Егор", "Никита", "Владимир", "Тимур", "Иван"];
-        const femaleNames = ["Анастасия", "Мария", "Дарья", "Анна", "Елизавета", "Полина", "Виктория", "Екатерина", "София", "Алиса", "Ксения", "Александра", "Валерия", "Варвара", "Вероника"];
-        const surnames = ["Иванов", "Смирнов", "Кузнецов", "Попов", "Васильев", "Петров", "Соколов", "Михайлов", "Новиков", "Фёдоров", "Морозов", "Волков", "Алексеев", "Лебедев", "Семёнов"];
-        
-        function generateName() {
-            const genderSetting = document.getElementById('name-gender').value;
-            let isMale = true;
+        // --- ПРОЦЕДУРНАЯ Логика генератора ников (на английском) ---
+        function generateNickname() {
+            const length = parseInt(document.getElementById('nick-length').value);
+            const useNumbers = document.getElementById('nick-numbers').checked;
+            const resultBox = document.getElementById('name-result');
             
-            if (genderSetting === 'male') {
-                isMale = true;
-            } else if (genderSetting === 'female') {
-                isMale = false;
-            } else {
-                isMale = Math.random() > 0.5; // Случайный пол, если выбран "Любой"
+            if (length < 3) {
+                resultBox.innerText = "Слишком короткий ник";
+                resultBox.style.display = 'block';
+                return;
             }
 
-            const namesList = isMale ? maleNames : femaleNames;
-            const randomName = namesList[Math.floor(Math.random() * namesList.length)];
+            // Блоки для слогов: гласные и согласные (включая популярные сочетания из английского)
+            const vowels = ["a", "e", "i", "o", "u", "y", "ae", "ea", "oo", "ou", "ai", "ee"];
+            const consonants = ["b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "v", "w", "x", "z", "th", "sh", "ch", "kr", "dr", "tr", "gr", "st", "sp", "bl", "cl", "fl", "gl", "pl", "sl", "br", "cr", "fr", "pr"];
             
-            let randomSurname = surnames[Math.floor(Math.random() * surnames.length)];
-            // Адаптация фамилии для женского пола (добавляем 'а')
-            if (!isMale) {
-                randomSurname += "а"; 
+            let nickname = "";
+            // Случайно решаем, с чего начать ник: с гласной или согласной
+            let isVowel = Math.random() > 0.5;
+
+            // Строим ник, чередуя гласные и согласные
+            while (nickname.length < length) {
+                let chunk = "";
+                if (isVowel) {
+                    chunk = vowels[Math.floor(Math.random() * vowels.length)];
+                } else {
+                    chunk = consonants[Math.floor(Math.random() * consonants.length)];
+                }
+                
+                nickname += chunk;
+                isVowel = !isVowel; // Смена типа для следующей итерации
+            }
+            
+            // Обрезаем, если длина превысила нужную из-за двойных буквосочетаний
+            nickname = nickname.slice(0, length);
+            
+            // Делаем первую букву заглавной
+            nickname = nickname.charAt(0).toUpperCase() + nickname.slice(1);
+
+            // Добавляем цифры в конец, если выбрано
+            if (useNumbers) {
+                const numLen = Math.floor(Math.random() * 3) + 2; // от 2 до 4 цифр
+                let numStr = "";
+                for(let i = 0; i < numLen; i++) {
+                    numStr += Math.floor(Math.random() * 10);
+                }
+                nickname += numStr;
             }
 
-            document.getElementById('name-result').innerText = `${randomName} ${randomSurname}`;
+            resultBox.innerText = nickname;
+            resultBox.style.display = 'block';
         }
 
         // --- Логика генератора QR-кодов ---
@@ -324,17 +425,16 @@
             const resultBox = document.getElementById('qr-result');
             
             if (!input) {
+                resultBox.style.display = 'block';
                 resultBox.innerHTML = "<p style='color:red;'>Пожалуйста, введите текст или ссылку.</p>";
                 return;
             }
 
-            // Показываем индикатор загрузки
+            resultBox.style.display = 'flex';
             resultBox.innerHTML = "<p>Генерация...</p>";
 
-            // Используем публичный API для создания QR-кода
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(input)}&margin=10`;
             
-            // Создаем изображение и ждем его загрузки
             const img = new Image();
             img.onload = () => {
                 resultBox.innerHTML = '';
