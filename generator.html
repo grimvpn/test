@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мульти-Генератор</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-hover: #2980b9;
+            --secondary: #2c3e50;
+            --success: #27ae60;
+            --success-hover: #2ecc71;
+            --bg: #f4f7f6;
+            --text: #333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 40px 20px; 
+            display: flex; 
+            justify-content: center;
+        }
+
+        .container { 
+            background: #fff; 
+            width: 100%; 
+            max-width: 600px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+
+        /* Tabs Styles */
+        .tabs { 
+            display: flex; 
+            background: var(--secondary); 
+        }
+
+        .tab-btn { 
+            flex: 1; 
+            padding: 16px; 
+            border: none; 
+            background: none; 
+            color: #bdc3c7; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: all 0.3s ease; 
+        }
+
+        .tab-btn:hover { 
+            background: #34495e; 
+            color: #fff;
+        }
+
+        .tab-btn.active { 
+            background: var(--primary); 
+            color: #fff; 
+            font-weight: bold; 
+        }
+
+        /* Content Styles */
+        .tab-content { 
+            padding: 30px; 
+            display: none; 
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .tab-content.active { 
+            display: block; 
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { margin-top: 0; color: var(--secondary); }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 20px; }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: bold; 
+            color: #555;
+        }
+
+        input[type="text"], input[type="number"], select { 
+            width: 100%; 
+            padding: 12px; 
+            box-sizing: border-box; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .checkbox-group { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 12px; 
+        }
+
+        .checkbox-group input { 
+            margin-right: 10px; 
+            width: 18px; 
+            height: 18px; 
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        button.action-btn { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--success); 
+            color: #fff; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 18px; 
+            font-weight: bold;
+            cursor: pointer; 
+            transition: background 0.3s;
+        }
+
+        button.action-btn:hover { 
+            background: var(--success-hover); 
+        }
+
+        .result-box { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background: #ecf0f1; 
+            border-radius: 6px; 
+            text-align: center; 
+            font-size: 22px; 
+            font-weight: bold;
+            letter-spacing: 1px;
+            word-break: break-all; 
+            min-height: 30px;
+            border: 2px dashed #bdc3c7;
+        }
+
+        .qr-result { 
+            text-align: center; 
+            margin-top: 25px; 
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-result img { 
+            max-width: 100%; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('password-tab', this)">🔑 Пароли</button>
+            <button class="tab-btn" onclick="openTab('names-tab', this)">👤 Имена</button>
+            <button class="tab-btn" onclick="openTab('qr-tab', this)">📱 QR-коды</button>
+        </div>
+
+        <!-- 1. Генератор паролей -->
+        <div id="password-tab" class="tab-content active">
+            <h2>Генератор надежных паролей</h2>
+            <div class="form-group">
+                <label>Длина пароля (4 - 64):</label>
+                <input type="number" id="pass-length" value="16" min="4" max="64">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="pass-upper" checked> 
+                <label for="pass-upper">Заглавные буквы (A-Z)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="pass-lower" checked> 
+                <label for="pass-lower">Строчные буквы (a-z)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="pass-numbers" checked> 
+                <label for="pass-numbers">Цифры (0-9)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="pass-symbols" checked> 
+                <label for="pass-symbols">Спецсимволы (!@#$%^&*)</label>
+            </div>
+            <button class="action-btn" onclick="generatePassword()">Сгенерировать пароль</button>
+            <div class="result-box" id="pass-result">Здесь появится пароль</div>
+        </div>
+
+        <!-- 2. Генератор имен -->
+        <div id="names-tab" class="tab-content">
+            <h2>Генератор случайных имен</h2>
+            <div class="form-group">
+                <label>Выберите пол:</label>
+                <select id="name-gender">
+                    <option value="any">Любой</option>
+                    <option value="male">Мужской</option>
+                    <option value="female">Женский</option>
+                </select>
+            </div>
+            <button class="action-btn" onclick="generateName()">Сгенерировать имя</button>
+            <div class="result-box" id="name-result">Здесь появится имя</div>
+        </div>
+
+        <!-- 3. Генератор QR-кодов -->
+        <div id="qr-tab" class="tab-content">
+            <h2>Создание QR-кода</h2>
+            <div class="form-group">
+                <label>Введите текст или ссылку URL:</label>
+                <input type="text" id="qr-input" placeholder="Например: https://google.com">
+            </div>
+            <button class="action-btn" onclick="generateQR()">Создать QR-код</button>
+            <div class="qr-result" id="qr-result">
+                <p style="color: #7f8c8d;">Введите текст и нажмите кнопку для генерации.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Логика переключения вкладок ---
+        function openTab(tabId, btnElement) {
+            // Скрываем все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Убираем активный класс у всех кнопок
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Показываем нужную вкладку и делаем кнопку активной
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // --- Логика генератора паролей ---
+        function generatePassword() {
+            const length = document.getElementById('pass-length').value;
+            const hasUpper = document.getElementById('pass-upper').checked;
+            const hasLower = document.getElementById('pass-lower').checked;
+            const hasNumbers = document.getElementById('pass-numbers').checked;
+            const hasSymbols = document.getElementById('pass-symbols').checked;
+
+            const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const lowerChars = "abcdefghijklmnopqrstuvwxyz";
+            const numberChars = "0123456789";
+            const symbolChars = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+            let charPool = "";
+            if (hasUpper) charPool += upperChars;
+            if (hasLower) charPool += lowerChars;
+            if (hasNumbers) charPool += numberChars;
+            if (hasSymbols) charPool += symbolChars;
+
+            const resultBox = document.getElementById('pass-result');
+
+            if (charPool === "") {
+                resultBox.innerText = "Выберите хотя бы один тип символов!";
+                resultBox.style.color = "red";
+                return;
+            }
+            resultBox.style.color = "var(--text)";
+
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * charPool.length);
+                password += charPool[randomIndex];
+            }
+            
+            resultBox.innerText = password;
+        }
+
+        // --- Логика генератора имен ---
+        const maleNames = ["Александр", "Дмитрий", "Максим", "Сергей", "Андрей", "Алексей", "Артём", "Илья", "Кирилл", "Михаил", "Егор", "Никита", "Владимир", "Тимур", "Иван"];
+        const femaleNames = ["Анастасия", "Мария", "Дарья", "Анна", "Елизавета", "Полина", "Виктория", "Екатерина", "София", "Алиса", "Ксения", "Александра", "Валерия", "Варвара", "Вероника"];
+        const surnames = ["Иванов", "Смирнов", "Кузнецов", "Попов", "Васильев", "Петров", "Соколов", "Михайлов", "Новиков", "Фёдоров", "Морозов", "Волков", "Алексеев", "Лебедев", "Семёнов"];
+        
+        function generateName() {
+            const genderSetting = document.getElementById('name-gender').value;
+            let isMale = true;
+            
+            if (genderSetting === 'male') {
+                isMale = true;
+            } else if (genderSetting === 'female') {
+                isMale = false;
+            } else {
+                isMale = Math.random() > 0.5; // Случайный пол, если выбран "Любой"
+            }
+
+            const namesList = isMale ? maleNames : femaleNames;
+            const randomName = namesList[Math.floor(Math.random() * namesList.length)];
+            
+            let randomSurname = surnames[Math.floor(Math.random() * surnames.length)];
+            // Адаптация фамилии для женского пола (добавляем 'а')
+            if (!isMale) {
+                randomSurname += "а"; 
+            }
+
+            document.getElementById('name-result').innerText = `${randomName} ${randomSurname}`;
+        }
+
+        // --- Логика генератора QR-кодов ---
+        function generateQR() {
+            const input = document.getElementById('qr-input').value.trim();
+            const resultBox = document.getElementById('qr-result');
+            
+            if (!input) {
+                resultBox.innerHTML = "<p style='color:red;'>Пожалуйста, введите текст или ссылку.</p>";
+                return;
+            }
+
+            // Показываем индикатор загрузки
+            resultBox.innerHTML = "<p>Генерация...</p>";
+
+            // Используем публичный API для создания QR-кода
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(input)}&margin=10`;
+            
+            // Создаем изображение и ждем его загрузки
+            const img = new Image();
+            img.onload = () => {
+                resultBox.innerHTML = '';
+                resultBox.appendChild(img);
+            };
+            img.src = qrUrl;
+        }
+    </script>
+</body>
+</html>
