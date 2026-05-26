@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art & Video</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #00ffcc;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+            align-items: end;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .row-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-size: 0.9em;
+            color: #ccc;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="file"] {
+            background: #2a2a2a;
+            padding: 8px;
+            border-radius: 6px;
+            color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #444;
+        }
+
+        input[type="text"], select {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 6px;
+            color: #fff;
+            border: 1px solid #444;
+            font-family: monospace;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #00ffcc;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #00ffcc;
+            color: #121212;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.2s;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: #00cca3;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #555;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        input[type="color"] {
+            border: none;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            cursor: pointer;
+            background: none;
+            border-radius: 4px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.9em;
+            color: #fff;
+        }
+
+        .checkbox-container input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+
+        .output-container {
+            width: 100%;
+            max-width: 95vw;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        #asciiOutput {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 8px;
+            line-height: 8px; 
+            background-color: #000000;
+            color: #00ff00;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            white-space: pre;
+            margin: 0;
+        }
+
+        .time-display {
+            font-size: 0.9em;
+            color: #00ffcc;
+            min-width: 90px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .video-controls {
+            background: #151515;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ASCII Art & Video</h1>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Изображение или Видео:</label>
+            <input type="file" id="mediaInput" accept="image/*, video/*">
+        </div>
+
+        <div class="control-group">
+            <label>Палитра (темный -> светлый):</label>
+            <input type="text" id="charsetInput" value=" .:-=+*#%@">
+            <label class="checkbox-container">
+                <input type="checkbox" id="invertCheckbox"> Инвертировать
+            </label>
+        </div>
+        
+        <div class="control-group">
+            <label><span>Цвета из исходника (Full Color):</span></label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="colorTextCb"> Раскрасить текст
+            </label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="colorBgCb"> Закрашивать фон
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label><span>Детализация:</span> <span id="resValue" style="color:#00ffcc">120</span></label>
+            <input type="range" id="resolution" min="50" max="400" value="120">
+            <label><span>Пропорции:</span> <span id="stretchValue" style="color:#00ffcc">0.55</span></label>
+            <input type="range" id="stretch" min="0.2" max="1.5" step="0.01" value="0.55">
+        </div>
+
+        <div class="control-group">
+            <label><span>Яркость:</span> <span id="brightnessValue" style="color:#00ffcc">0</span></label>
+            <input type="range" id="brightness" min="-100" max="100" value="0">
+            <label><span>Контраст:</span> <span id="contrastValue" style="color:#00ffcc">0</span></label>
+            <input type="range" id="contrast" min="-100" max="100" value="0">
+        </div>
+
+        <div class="control-group">
+            <label>Базовые цвета:</label>
+            <div class="row-group" style="padding-top: 5px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="color" id="textColor" value="#00ff00"> Текст
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="color" id="bgColor" value="#000000"> Фон
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group video-controls" id="videoControls" style="display: none; grid-column: 1 / -1;">
+            <label>Управление видео:</label>
+            <div class="row-group">
+                <button id="playPauseBtn" style="flex-grow: 0; width: 100px;">⏸ Пауза</button>
+                <button id="rwBtn" style="flex-grow: 0; width: 80px;">⏪ -5с</button>
+                <button id="ffBtn" style="flex-grow: 0; width: 80px;">+5с ⏩</button>
+                
+                <span class="time-display" id="timeDisplay">00:00 / 00:00</span>
+                <input type="range" id="timeline" min="0" max="100" value="0" step="0.1" style="flex-grow: 2; width: auto;">
+                
+                <select id="speedSelect" style="flex-grow: 0; width: 80px; padding: 12px 8px;">
+                    <option value="0.25">0.25x</option>
+                    <option value="0.5">0.5x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                    <option value="4">4x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group row-group" style="grid-column: 1 / -1;">
+            <button id="copyBtn">📋 Копия текста</button>
+            <button id="savePngBtn">🖼 Сохранить PNG</button>
+            <button id="saveVideoBtn" style="display: none; background-color: #ff0055; color: white;">🎥 Рендер Видео</button>
+        </div>
+    </div>
+
+    <div class="output-container">
+        <pre id="asciiOutput">Загрузите файл...</pre>
+    </div>
+
+    <script>
+        const mediaInput = document.getElementById('mediaInput');
+        const resolutionSlider = document.getElementById('resolution');
+        const resValue = document.getElementById('resValue');
+        const stretchSlider = document.getElementById('stretch');
+        const stretchValue = document.getElementById('stretchValue');
+        const brightnessSlider = document.getElementById('brightness');
+        const brightnessValue = document.getElementById('brightnessValue');
+        const contrastSlider = document.getElementById('contrast');
+        const contrastValue = document.getElementById('contrastValue');
+        
+        const charsetInput = document.getElementById('charsetInput');
+        const invertCheckbox = document.getElementById('invertCheckbox');
+        const colorTextCb = document.getElementById('colorTextCb');
+        const colorBgCb = document.getElementById('colorBgCb');
+        
+        const textColorInput = document.getElementById('textColor');
+        const bgColorInput = document.getElementById('bgColor');
+        
+        const asciiOutput = document.getElementById('asciiOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const savePngBtn = document.getElementById('savePngBtn');
+        const saveVideoBtn = document.getElementById('saveVideoBtn');
+
+        const videoControls = document.getElementById('videoControls');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const rwBtn = document.getElementById('rwBtn');
+        const ffBtn = document.getElementById('ffBtn');
+        const timeline = document.getElementById('timeline');
+        const speedSelect = document.getElementById('speedSelect');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        let mediaSource = null;
+        let isVideo = false;
+        let currentRawText = ""; 
+        let currentPixels = null;
+        let currentWidth = 0;
+        let currentHeight = 0;
+        let isScrubbing = false;
+        let isRecording = false;
+
+        let mediaRecorder;
+        let recordedChunks = [];
+        const recordingCanvas = document.createElement('canvas');
+        const recordingCtx = recordingCanvas.getContext('2d');
+        const fontSize = 12;
+        const lineHeight = 12;
+
+        function updateColors() {
+            asciiOutput.style.color = textColorInput.value;
+            asciiOutput.style.backgroundColor = bgColorInput.value;
+            asciiOutput.style.boxShadow = `0 0 20px ${textColorInput.value}33`; 
+        }
+
+        textColorInput.addEventListener('input', updateColors);
+        bgColorInput.addEventListener('input', updateColors);
+
+        const triggers = [
+            resolutionSlider, stretchSlider, brightnessSlider, contrastSlider, 
+            charsetInput, invertCheckbox, colorTextCb, colorBgCb
+        ];
+
+        triggers.forEach(el => {
+            el.addEventListener('input', () => {
+                if(el === resolutionSlider) resValue.textContent = el.value;
+                if(el === stretchSlider) stretchValue.textContent = el.value;
+                if(el === brightnessSlider) brightnessValue.textContent = el.value;
+                if(el === contrastSlider) contrastValue.textContent = el.value;
+                if (!isVideo || (isVideo && mediaSource.paused)) {
+                    convertToAscii();
+                }
+            });
+        });
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        mediaInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const url = URL.createObjectURL(file);
+            
+            if (file.type.startsWith('video/')) {
+                isVideo = true;
+                mediaSource = document.createElement('video');
+                mediaSource.src = url;
+                mediaSource.muted = true;
+                mediaSource.loop = false;
+                
+                videoControls.style.display = 'flex';
+                saveVideoBtn.style.display = 'flex';
+                savePngBtn.textContent = '🖼 Сохранить кадр (PNG)';
+
+                mediaSource.addEventListener('loadeddata', () => {
+                    mediaSource.play();
+                    playPauseBtn.textContent = '⏸ Пауза';
+                    requestAnimationFrame(videoLoop);
+                });
+
+                mediaSource.addEventListener('timeupdate', () => {
+                    if (!isScrubbing && mediaSource.duration) {
+                        timeline.value = (mediaSource.currentTime / mediaSource.duration) * 100;
+                        timeDisplay.textContent = `${formatTime(mediaSource.currentTime)} / ${formatTime(mediaSource.duration)}`;
+                    }
+                });
+
+                mediaSource.addEventListener('ended', () => {
+                    if (!isRecording) {
+                        playPauseBtn.textContent = '▶ Играть';
+                    }
+                });
+
+            } else {
+                isVideo = false;
+                videoControls.style.display = 'none';
+                saveVideoBtn.style.display = 'none';
+                savePngBtn.textContent = '🖼 Сохранить PNG';
+                
+                const img = new Image();
+                img.onload = () => {
+                    mediaSource = img;
+                    convertToAscii();
+                };
+                img.src = url;
+            }
+        });
+
+        function videoLoop() {
+            if (isVideo && mediaSource && !mediaSource.paused && !mediaSource.ended) {
+                convertToAscii();
+                
+                if (isRecording) {
+                    drawFrameToCanvas(recordingCtx, recordingCanvas.width, recordingCanvas.height);
+                }
+            }
+            if (isVideo) {
+                requestAnimationFrame(videoLoop);
+            }
+        }
+
+        playPauseBtn.addEventListener('click', () => {
+            if (!isVideo) return;
+            if (mediaSource.paused) {
+                mediaSource.play();
+                playPauseBtn.textContent = '⏸ Пауза';
+            } else {
+                mediaSource.pause();
+                playPauseBtn.textContent = '▶ Играть';
+            }
+        });
+
+        rwBtn.addEventListener('click', () => {
+            if (isVideo) mediaSource.currentTime = Math.max(0, mediaSource.currentTime - 5);
+            convertToAscii();
+        });
+
+        ffBtn.addEventListener('click', () => {
+            if (isVideo) mediaSource.currentTime = Math.min(mediaSource.duration, mediaSource.currentTime + 5);
+            convertToAscii();
+        });
+
+        speedSelect.addEventListener('change', () => {
+            if (isVideo) mediaSource.playbackRate = parseFloat(speedSelect.value);
+        });
+
+        timeline.addEventListener('mousedown', () => isScrubbing = true);
+        timeline.addEventListener('mouseup', () => isScrubbing = false);
+        timeline.addEventListener('input', () => {
+            if (isVideo && mediaSource.duration) {
+                mediaSource.currentTime = (timeline.value / 100) * mediaSource.duration;
+                timeDisplay.textContent = `${formatTime(mediaSource.currentTime)} / ${formatTime(mediaSource.duration)}`;
+                convertToAscii();
+            }
+        });
+
+        function convertToAscii() {
+            if (!mediaSource) return;
+
+            let chars = charsetInput.value;
+            if (chars.length === 0) chars = "."; 
+            if (invertCheckbox.checked) chars = chars.split('').reverse().join('');
+
+            const isColorText = colorTextCb.checked;
+            const isColorBg = colorBgCb.checked;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            const sourceWidth = isVideo ? mediaSource.videoWidth : mediaSource.width;
+            const sourceHeight = isVideo ? mediaSource.videoHeight : mediaSource.height;
+
+            if (!sourceWidth || !sourceHeight) return;
+
+            const width = parseInt(resolutionSlider.value);
+            const stretch = parseFloat(stretchSlider.value);
+            const brightness = parseInt(brightnessSlider.value);
+            const contrast = parseInt(contrastSlider.value);
+            const height = Math.floor((width * sourceHeight / sourceWidth) * stretch);
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(mediaSource, 0, 0, width, height);
+            
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+
+            currentPixels = pixels;
+            currentWidth = width;
+            currentHeight = height;
+
+            let rawText = '';
+            let htmlText = '';
+            const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = (y * width + x) * 4;
+                    const r = pixels[index];
+                    const g = pixels[index + 1];
+                    const b = pixels[index + 2];
+                    const alpha = pixels[index + 3];
+                    
+                    if (alpha < 128) {
+                        rawText += ' ';
+                        if (isColorText || isColorBg) htmlText += ' ';
+                        continue;
+                    }
+                    
+                    let avg = (0.299 * r + 0.587 * g + 0.114 * b);
+                    avg += brightness;
+                    avg = factor * (avg - 128) + 128;
+                    avg = Math.max(0, Math.min(255, avg));
+                    
+                    const charIndex = Math.floor((avg / 256) * chars.length);
+                    const char = chars[charIndex];
+                    rawText += char;
+
+                    if (isColorText || isColorBg) {
+                        let style = '';
+                        if (isColorText) style += `color: rgb(${r},${g},${b});`;
+                        if (isColorBg) style += `background-color: rgb(${r},${g},${b});`;
+                        
+                        let escapedChar = char;
+                        if (char === '<') escapedChar = '&lt;';
+                        else if (char === '>') escapedChar = '&gt;';
+                        else if (char === '&') escapedChar = '&amp;';
+
+                        htmlText += `<span style="${style}">${escapedChar}</span>`;
+                    }
+                }
+                rawText += '\n';
+                if (isColorText || isColorBg) htmlText += '\n';
+            }
+
+            currentRawText = rawText; 
+
+            if (isColorText || isColorBg) {
+                asciiOutput.innerHTML = htmlText;
+            } else {
+                asciiOutput.textContent = rawText;
+            }
+        }
+
+        function drawFrameToCanvas(ctx, canvasWidth, canvasHeight) {
+            const lines = currentRawText.split('\n');
+            const isColorText = colorTextCb.checked;
+            const isColorBg = colorBgCb.checked;
+
+            ctx.font = `${fontSize}px monospace`;
+            const charWidth = ctx.measureText("A").width;
+            const paddingX = 40;
+            const paddingY = 40;
+
+            ctx.fillStyle = bgColorInput.value;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            
+            ctx.textBaseline = 'top';
+
+            if (isColorText || isColorBg) {
+                for (let y = 0; y < currentHeight; y++) {
+                    const line = lines[y];
+                    if (!line) continue;
+
+                    for (let x = 0; x < currentWidth; x++) {
+                        const char = line[x];
+                        const index = (y * currentWidth + x) * 4;
+                        
+                        const r = currentPixels[index];
+                        const g = currentPixels[index + 1];
+                        const b = currentPixels[index + 2];
+                        const alpha = currentPixels[index + 3];
+
+                        const drawX = paddingX + x * charWidth;
+                        const drawY = paddingY + y * lineHeight;
+
+                        if (alpha < 128) continue;
+
+                        if (isColorBg) {
+                            ctx.fillStyle = `rgb(${r},${g},${b})`;
+                            ctx.fillRect(drawX, drawY, charWidth, lineHeight);
+                        }
+
+                        if (char !== ' ') {
+                            ctx.fillStyle = isColorText ? `rgb(${r},${g},${b})` : textColorInput.value;
+                            ctx.fillText(char, drawX, drawY);
+                        }
+                    }
+                }
+            } else {
+                ctx.fillStyle = textColorInput.value;
+                for (let y = 0; y < currentHeight; y++) {
+                    if (lines[y]) {
+                        ctx.fillText(lines[y], paddingX, paddingY + y * lineHeight);
+                    }
+                }
+            }
+        }
+
+        function setupRecordingCanvas() {
+            const lines = currentRawText.split('\n');
+            recordingCtx.font = `${fontSize}px monospace`;
+            const charWidth = recordingCtx.measureText("A").width; 
+            
+            let maxWidth = 0;
+            for(let line of lines) {
+                const w = line.length * charWidth;
+                if(w > maxWidth) maxWidth = w;
+            }
+            
+            const textHeight = (lines.length - 1) * lineHeight;
+            recordingCanvas.width = maxWidth + 80;
+            recordingCanvas.height = textHeight + 80;
+        }
+
+        copyBtn.addEventListener('click', () => {
+            if (!currentRawText) {
+                alert("Сначала загрузите файл!");
+                return;
+            }
+            navigator.clipboard.writeText(currentRawText).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = "✅ Скопировано!";
+                setTimeout(() => copyBtn.innerHTML = originalText, 2000);
+            }).catch(() => alert("Ошибка копирования."));
+        });
+
+        savePngBtn.addEventListener('click', () => {
+            if (!currentRawText) {
+                alert("Сначала загрузите файл!");
+                return;
+            }
+            setupRecordingCanvas();
+            drawFrameToCanvas(recordingCtx, recordingCanvas.width, recordingCanvas.height);
+            
+            const link = document.createElement('a');
+            link.download = `ascii-art-${Date.now()}.png`;
+            link.href = recordingCanvas.toDataURL('image/png');
+            link.click();
+        });
+
+        saveVideoBtn.addEventListener('click', () => {
+            if (!isVideo || !mediaSource) return;
+
+            isRecording = true;
+            saveVideoBtn.textContent = '🔴 Идет запись (Дождитесь конца)...';
+            saveVideoBtn.disabled = true;
+            document.querySelectorAll('.controls input, .controls button, .controls select').forEach(el => {
+                if (el !== saveVideoBtn) el.disabled = true;
+            });
+
+            convertToAscii();
+            setupRecordingCanvas();
+            mediaSource.pause();
+            mediaSource.currentTime = 0;
+            mediaSource.playbackRate = parseFloat(speedSelect.value);
+
+            // Запрашиваем поток (60 FPS)
+            const stream = recordingCanvas.captureStream(60);
+            
+            let mimeType = 'video/mp4';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'video/webm;codecs=vp9';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm'; 
+                }
+            }
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+            recordedChunks = [];
+
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                const blob = new Blob(recordedChunks, { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ascii-video-${Date.now()}.${extension}`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                isRecording = false;
+                saveVideoBtn.textContent = '🎥 Рендер Видео';
+                saveVideoBtn.disabled = false;
+                document.querySelectorAll('.controls input, .controls button, .controls select').forEach(el => el.disabled = false);
+            };
+
+            const stopRecording = () => {
+                if (isRecording) {
+                    mediaRecorder.stop();
+                    mediaSource.removeEventListener('ended', stopRecording);
+                }
+            };
+            mediaSource.addEventListener('ended', stopRecording);
+
+            mediaRecorder.start();
+            mediaSource.play();
+        });
+
+    </script>
+</body>
+</html>

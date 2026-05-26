@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Art</title>
+    
+    <script src="https://unpkg.com/mp4-muxer/build/mp4-muxer.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #1e1e24; --panel-bg: #2b2b36;
+            --accent: #ff4757; --accent-hover: #ff6b81;
+            --success: #2ed573; --danger: #e84118; --info: #3742fa;
+            --text: #f1f2f6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            background-color: var(--bg-color); color: var(--text);
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 20px;
+        }
+
+        h1 { margin-top: 0; text-align: center; }
+
+        .controls {
+            background-color: var(--panel-bg); padding: 20px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; flex-wrap: wrap; gap: 15px;
+            align-items: flex-end; justify-content: center;
+            margin-bottom: 20px; width: 100%; max-width: 1100px;
+        }
+
+        .control-group {
+            display: flex; flex-direction: column; gap: 8px; flex-grow: 1;
+            min-width: 140px;
+        }
+
+        label { font-size: 13px; font-weight: 600; color: #ced6e0; }
+
+        .checkbox-label {
+            display: flex; align-items: center; gap: 8px; height: 37px;
+            cursor: pointer; user-select: none; font-size: 14px; font-weight: 600;
+        }
+
+        .checkbox-label input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+
+        .size-inputs { display: flex; gap: 10px; align-items: center; }
+        input[type="range"] { accent-color: var(--accent); cursor: pointer; flex-grow: 1; }
+        input[type="number"], select {
+            width: 100%; padding: 8px; border-radius: 6px;
+            border: 1px solid #555; background: #333; color: white;
+            font-size: 14px; outline: none; height: 37px; box-sizing: border-box;
+        }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+        .btn {
+            background-color: var(--accent); color: white; border: none;
+            padding: 10px 15px; border-radius: 6px; font-size: 14px;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+            height: 37px; white-space: nowrap; flex-grow: 1;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .btn:hover:not(:disabled) { filter: brightness(1.1); }
+        .btn:active:not(:disabled) { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-info { background-color: var(--info); }
+        .btn-large { height: 45px; font-size: 16px; width: 100%; }
+
+        .canvas-container {
+            position: relative; max-width: 100%; overflow: hidden;
+            border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            background: repeating-conic-gradient(#444 0% 25%, transparent 0% 50%) 50% / 20px 20px;
+            touch-action: none; 
+        }
+
+        canvas { display: block; max-width: 100%; max-height: 70vh; cursor: default; }
+        canvas.crosshair-mode { cursor: crosshair; }
+
+        .timeline-wrapper {
+            width: 100%; max-width: 1100px; margin-top: 15px;
+            background-color: var(--panel-bg); padding: 15px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: none; flex-direction: column; gap: 15px; box-sizing: border-box;
+        }
+        
+        .timeline-wrapper input[type="range"] { 
+            width: 100%; 
+            height: 10px; 
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .playback-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .playback-controls .btn { flex-grow: 0; min-width: 100px; }
+
+        .instruction { color: #a4b0be; font-size: 14px; margin-bottom: 15px; text-align: center; max-width: 800px; }
+        .progress-text { font-size: 14px; color: #f1c40f; font-weight: bold; margin-top: 15px; text-align: center; display: none; width: 100%;}
+    </style>
+</head>
+<body>
+
+    <h1>Pro Pixel Art Генератор</h1>
+    <div class="instruction">
+        <b>Локальный генератор Pixel артов. Всё делается на вашем устройстве.</b>
+    </div>
+
+    <div class="controls">
+        <input type="file" id="upload" accept="image/*,video/*" style="display: none;">
+        
+        <div style="width: 100%; margin-bottom: 15px;">
+            <button class="btn btn-info btn-large" id="chooseMediaBtn">📁 Выбрать медиа (Фото/Видео)</button>
+        </div>
+
+        <div class="control-group" style="flex-grow: 2;">
+            <label>Размер пикселя</label>
+            <div class="size-inputs">
+                <input type="range" id="pixelSize" min="1" max="200" value="10">
+                <input type="number" id="pixelNumber" min="1" max="200" value="10" style="width: 70px;">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="checkbox-label" style="margin-top: 20px;">
+                <input type="checkbox" id="useSelection"> Только область
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label class="checkbox-label" style="margin-top: 20px;">
+                <input type="checkbox" id="monochrome"> Черно-белый
+            </label>
+        </div>
+
+        <div class="control-group" id="engineGroup" style="display: none;">
+            <label for="renderEngine">Движок рендера</label>
+            <select id="renderEngine">
+                <option value="mediarecorder">MediaRecorder (Рекомендуется)</option>
+                <option value="webcodecs">WebCodecs API (Быстро, но мало где поддерживается)</option>
+            </select>
+        </div>
+
+        <div class="control-group" id="speedGroup" style="display: none; min-width: 110px;">
+            <label for="renderSpeed">Скорость видео</label>
+            <select id="renderSpeed">
+                <option value="1">1x</option>
+                <option value="2">2x</option>
+                <option value="4">4x</option>
+            </select>
+        </div>
+
+        <div class="btn-group" id="buttonsContainer" style="margin-top: 20px;">
+            <button class="btn btn-info" id="downloadImgBtn" style="display: none; height: 45px; font-size: 16px;">💾 Скачать изображение</button>
+            <button class="btn btn-success" id="autoRenderBtn" style="display: none; height: 45px; font-size: 16px;">Запустить Рендер Видео</button>
+            <button class="btn btn-danger" id="finishRenderBtn" style="display: none; height: 45px; font-size: 16px;">Завершить</button>
+        </div>
+        
+        <div id="progressText" class="progress-text">Прогресс: 0%</div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="timeline-wrapper" id="timelineGroup">
+        <div style="width: 100%;">
+            <label for="videoTimeline" style="display: block; margin-bottom: 12px; text-align: center;">Перемотка видео</label>
+            <input type="range" id="videoTimeline" min="0" max="100" value="0" step="0.01">
+        </div>
+        <div class="playback-controls" id="playbackControls">
+            <button class="btn btn-info" id="skipBackBtn">⏪ -5 сек</button>
+            <button class="btn btn-info" id="playPauseBtn">▶️ Плей</button>
+            <button class="btn btn-info" id="skipForwardBtn">+5 сек ⏩</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const tmpCanvas = document.createElement('canvas');
+        const tmpCtx = tmpCanvas.getContext('2d');
+        
+        const upload = document.getElementById('upload');
+        const chooseMediaBtn = document.getElementById('chooseMediaBtn');
+        const pixelSizeInput = document.getElementById('pixelSize');
+        const pixelNumber = document.getElementById('pixelNumber');
+        const useSelection = document.getElementById('useSelection');
+        const monochrome = document.getElementById('monochrome');
+        
+        const renderEngine = document.getElementById('renderEngine');
+        const renderSpeed = document.getElementById('renderSpeed');
+        const engineGroup = document.getElementById('engineGroup');
+        const speedGroup = document.getElementById('speedGroup');
+        
+        const timelineGroup = document.getElementById('timelineGroup');
+        const videoTimeline = document.getElementById('videoTimeline');
+        
+        const skipBackBtn = document.getElementById('skipBackBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const skipForwardBtn = document.getElementById('skipForwardBtn');
+
+        const progressText = document.getElementById('progressText');
+        const autoRenderBtn = document.getElementById('autoRenderBtn');
+        const finishRenderBtn = document.getElementById('finishRenderBtn');
+        const downloadImgBtn = document.getElementById('downloadImgBtn');
+
+        let img = new Image();
+        img.crossOrigin = "anonymous"; 
+
+        let video = document.createElement('video');
+        video.muted = true; video.loop = true; video.playsInline = true;
+        video.crossOrigin = "anonymous"; 
+
+        let sourceMode = null; let isDragging = false; let isDraggingTimeline = false;
+        let startX = 0, startY = 0; let selection = null; let currentCoords = { x: 0, y: 0 };
+        let isRendering = false; let isCanceled = false; let isFinishingEarly = false;
+        let mediaRecorder; let recordedChunks = [];
+
+        chooseMediaBtn.addEventListener('click', () => upload.click());
+
+        downloadImgBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = sourceMode === 'video' ? 'pixel-frame.png' : 'pixel-art.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+
+        function updateSizeFromInput(val) {
+            let num = parseInt(val);
+            if (isNaN(num) || num < 1) num = 1;
+            if (num > 200) num = 200;
+            pixelSizeInput.value = num; pixelNumber.value = num;
+            if (sourceMode === 'image' || video.paused) render();
+        }
+
+        pixelSizeInput.addEventListener('input', (e) => updateSizeFromInput(e.target.value));
+        pixelNumber.addEventListener('change', (e) => updateSizeFromInput(e.target.value));
+
+        useSelection.addEventListener('change', () => {
+            if (useSelection.checked) canvas.classList.add('crosshair-mode');
+            else { canvas.classList.remove('crosshair-mode'); selection = null; }
+            if (sourceMode === 'image' || video.paused) render();
+        });
+
+        monochrome.addEventListener('change', () => {
+            if (sourceMode === 'image' || video.paused) render();
+        });
+
+        renderSpeed.addEventListener('change', () => {
+            video.playbackRate = parseFloat(renderSpeed.value);
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if (video.paused) video.play();
+            else video.pause();
+        });
+
+        video.addEventListener('play', () => { playPauseBtn.innerHTML = '⏸️ Пауза'; });
+        video.addEventListener('pause', () => { playPauseBtn.innerHTML = '▶️ Плей'; });
+
+        function seekVideo(offset) {
+            if (isRendering && renderEngine.value === 'webcodecs') return;
+            video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + offset));
+            render();
+            videoTimeline.value = video.currentTime;
+        }
+
+        skipBackBtn.addEventListener('click', () => seekVideo(-5));
+        skipForwardBtn.addEventListener('click', () => seekVideo(5));
+
+        videoTimeline.addEventListener('mousedown', () => isDraggingTimeline = true);
+        videoTimeline.addEventListener('touchstart', () => isDraggingTimeline = true, { passive: true });
+        window.addEventListener('mouseup', () => isDraggingTimeline = false);
+        window.addEventListener('touchend', () => isDraggingTimeline = false);
+
+        videoTimeline.addEventListener('input', () => {
+            if (isRendering && renderEngine.value === 'webcodecs') return;
+            video.currentTime = parseFloat(videoTimeline.value);
+            render();
+        });
+
+        upload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selection = null; isDragging = false; useSelection.checked = false;
+            canvas.classList.remove('crosshair-mode');
+            if (isRendering) return;
+
+            downloadImgBtn.style.display = 'block';
+
+            if (file.type.startsWith('image/')) {
+                sourceMode = 'image';
+                autoRenderBtn.style.display = 'none'; 
+                engineGroup.style.display = 'none'; speedGroup.style.display = 'none';
+                timelineGroup.style.display = 'none';
+                
+                video.pause(); video.removeAttribute('src'); video.load();
+                
+                const reader = new FileReader();
+                reader.onload = (event) => { img.src = event.target.result; };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                sourceMode = 'video';
+                autoRenderBtn.style.display = 'block'; 
+                engineGroup.style.display = 'flex';
+                speedGroup.style.display = 'flex'; 
+                timelineGroup.style.display = 'flex';
+                
+                img.src = '';
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.playbackRate = parseFloat(renderSpeed.value); 
+                
+                video.onloadeddata = () => {
+                    video.currentTime = 0.001; 
+                    video.addEventListener('seeked', () => {
+                        if (!isRendering && sourceMode === 'video') {
+                            render();
+                            playPauseBtn.innerHTML = '▶️ Плей';
+                        }
+                    }, { once: true });
+                };
+            }
+            
+            e.target.value = '';
+        });
+
+        img.onload = () => { canvas.width = img.width; canvas.height = img.height; render(); };
+        video.addEventListener('loadedmetadata', () => { 
+            if (!isNaN(video.duration)) {
+                canvas.width = video.videoWidth; 
+                canvas.height = video.videoHeight; 
+                videoTimeline.max = video.duration;
+                videoTimeline.value = 0;
+            }
+        });
+
+        video.addEventListener('play', () => {
+            function step() {
+                if (sourceMode !== 'video' || video.paused || video.ended) return;
+                if (!isRendering || renderEngine.value === 'mediarecorder') {
+                    render();
+                    if (!isDraggingTimeline) {
+                        videoTimeline.value = video.currentTime;
+                    }
+                }
+                requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+            let clientX = e.clientX, clientY = e.clientY;
+            if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+            return {
+                x: Math.max(0, Math.min((clientX - rect.left) * scaleX, canvas.width)),
+                y: Math.max(0, Math.min((clientY - rect.top) * scaleY, canvas.height))
+            };
+        }
+
+        function handleStart(e) {
+            if (!sourceMode || (isRendering && renderEngine.value === 'webcodecs') || !useSelection.checked) return;
+            if (e.type === 'touchstart') e.preventDefault(); 
+            const coords = getCoords(e); startX = coords.x; startY = coords.y; isDragging = true; selection = null;
+        }
+        function handleMove(e) {
+            if (!isDragging || !useSelection.checked) return;
+            if (e.type === 'touchmove') e.preventDefault();
+            currentCoords = getCoords(e);
+            if (sourceMode === 'image' || video.paused) render();
+        }
+        function handleEnd(e) {
+            if (!isDragging || !useSelection.checked) return;
+            isDragging = false;
+            const width = Math.abs(currentCoords.x - startX); const height = Math.abs(currentCoords.y - startY);
+            if (width > 10 && height > 10) {
+                selection = { x: Math.min(startX, currentCoords.x), y: Math.min(startY, currentCoords.y), width, height };
+            } else { selection = null; }
+            if (sourceMode === 'image' || video.paused) render();
+        }
+
+        canvas.addEventListener('mousedown', handleStart); canvas.addEventListener('mousemove', handleMove); window.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('touchstart', handleStart, { passive: false }); canvas.addEventListener('touchmove', handleMove, { passive: false }); window.addEventListener('touchend', handleEnd);
+
+        function render() {
+            if (sourceMode === 'image' && !img.complete) return;
+            if (sourceMode === 'video' && video.readyState < 2) return;
+            const w = canvas.width, h = canvas.height;
+            if (w === 0 || h === 0) return;
+
+            ctx.filter = monochrome.checked ? 'grayscale(100%)' : 'none';
+            ctx.drawImage(sourceMode === 'image' ? img : video, 0, 0, w, h);
+            ctx.filter = 'none';
+            
+            const size = parseInt(pixelNumber.value);
+            
+            if (size > 1) {
+                const isActive = useSelection.checked && selection;
+                const areaX = isActive ? selection.x : 0; const areaY = isActive ? selection.y : 0;
+                const areaW = isActive ? selection.width : w; const areaH = isActive ? selection.height : h;
+
+                const scaledW = Math.max(1, Math.floor(areaW / size));
+                const scaledH = Math.max(1, Math.floor(areaH / size));
+
+                tmpCanvas.width = scaledW; tmpCanvas.height = scaledH;
+                tmpCtx.drawImage(canvas, areaX, areaY, areaW, areaH, 0, 0, scaledW, scaledH);
+
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(tmpCanvas, 0, 0, scaledW, scaledH, areaX, areaY, areaW, areaH);
+            }
+
+            if (isDragging && useSelection.checked) {
+                ctx.fillStyle = 'rgba(255, 71, 87, 0.2)'; ctx.strokeStyle = '#ff4757'; ctx.lineWidth = 2;
+                ctx.fillRect(startX, startY, currentCoords.x - startX, currentCoords.y - startY);
+                ctx.strokeRect(startX, startY, currentCoords.x - startX, currentCoords.y - startY);
+            }
+        }
+
+        function runMediaRecorder() {
+            recordedChunks = [];
+            const stream = canvas.captureStream(30);
+            let options = { mimeType: MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm' };
+            
+            mediaRecorder = new MediaRecorder(stream, options);
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            
+            video.playbackRate = parseFloat(renderSpeed.value);
+            
+            mediaRecorder.onstop = () => {
+                if (!isCanceled && recordedChunks.length > 0) {
+                    const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
+                    const link = document.createElement('a');
+                    link.download = options.mimeType === 'video/mp4' ? 'pixel-art.mp4' : 'pixel-art.webm';
+                    link.href = URL.createObjectURL(blob); link.click();
+                }
+                finishRender();
+            };
+
+            video.onended = () => { if (mediaRecorder.state !== 'inactive') mediaRecorder.stop(); };
+            mediaRecorder.start();
+            video.play();
+        }
+
+        async function runWebCodecs() {
+            if (typeof VideoEncoder === "undefined" || typeof Mp4Muxer === "undefined") {
+                alert("Ваш браузер не поддерживает WebCodecs API или скрипт не загрузился.");
+                return finishRender();
+            }
+
+            try {
+                const fps = 60;
+                let muxer = new Mp4Muxer.Muxer({
+                    target: new Mp4Muxer.ArrayBufferTarget(),
+                    video: { codec: 'avc', width: canvas.width, height: canvas.height }
+                });
+
+                let videoEncoder = new VideoEncoder({
+                    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+                    error: e => console.error("WebCodecs Ошибка:", e)
+                });
+
+                videoEncoder.configure({
+                    codec: 'avc1.42E01E', width: canvas.width, height: canvas.height,
+                    bitrate: 5_000_000, framerate: fps
+                });
+
+                let startTime = video.currentTime;
+                let currentTime = startTime;
+                const duration = video.duration;
+                let frameIndex = 0;
+                const baseFrameDuration = 1 / fps;
+                
+                const speedMult = parseFloat(renderSpeed.value);
+                const timeStep = baseFrameDuration * speedMult;
+
+                while (currentTime < duration && !isCanceled && !isFinishingEarly) {
+                    video.currentTime = currentTime;
+                    await new Promise(r => { video.addEventListener('seeked', r, {once: true}); });
+                    
+                    render(); 
+                    
+                    let frame = new VideoFrame(canvas, { timestamp: (frameIndex * baseFrameDuration) * 1_000_000 });
+                    videoEncoder.encode(frame);
+                    frame.close();
+
+                    currentTime += timeStep;
+                    frameIndex++;
+                    progressText.innerText = `Рендер (WebCodecs): ${Math.floor(((currentTime - startTime)/(duration - startTime))*100)}%`;
+                }
+
+                await videoEncoder.flush();
+                muxer.finalize();
+                
+                if (!isCanceled) {
+                    let buffer = muxer.target.buffer;
+                    let blob = new Blob([buffer], { type: 'video/mp4' });
+                    let link = document.createElement('a'); link.download = 'pixel-art-fast.mp4';
+                    link.href = URL.createObjectURL(blob); link.click();
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Произошла ошибка при кодировании WebCodecs.");
+            }
+            finishRender();
+        }
+
+        function disableControls(disabled) {
+            const lockForCodecs = disabled && renderEngine.value === 'webcodecs';
+
+            renderEngine.disabled = disabled;
+            downloadImgBtn.disabled = disabled; 
+            
+            renderSpeed.disabled = lockForCodecs;
+            videoTimeline.disabled = lockForCodecs;
+            skipBackBtn.disabled = lockForCodecs;
+            playPauseBtn.disabled = lockForCodecs;
+            skipForwardBtn.disabled = lockForCodecs;
+        }
+
+        function finishRender() {
+            isRendering = false;
+            video.loop = true; 
+            video.playbackRate = parseFloat(renderSpeed.value);
+            
+            video.pause(); 
+            playPauseBtn.innerHTML = '▶️ Плей';
+            
+            autoRenderBtn.textContent = 'Запустить Рендер Видео';
+            autoRenderBtn.className = 'btn btn-success';
+            finishRenderBtn.style.display = 'none';
+            progressText.style.display = 'none';
+            
+            disableControls(false);
+        }
+
+        autoRenderBtn.addEventListener('click', async () => {
+            if (isRendering) { 
+                isCanceled = true; 
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                return; 
+            }
+            
+            isRendering = true; isCanceled = false; isFinishingEarly = false;
+            disableControls(true);
+            
+            autoRenderBtn.textContent = 'ОТМЕНИТЬ';
+            autoRenderBtn.className = 'btn btn-danger';
+            finishRenderBtn.style.display = 'block';
+            
+            progressText.style.display = 'block'; progressText.innerText = "Подготовка...";
+            
+            video.pause(); video.loop = false;
+
+            const engine = renderEngine.value;
+            if (engine === 'mediarecorder') { runMediaRecorder(); }
+            else if (engine === 'webcodecs') { await runWebCodecs(); }
+        });
+
+        finishRenderBtn.addEventListener('click', () => {
+            if (!isRendering) return;
+            isFinishingEarly = true;
+            if (renderEngine.value === 'mediarecorder' && mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        });
+    </script>
+</body>
+</html>
