@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Супер Чистка Динамика PRO</title>
+    <title>Чистка Динамика</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,7 +30,6 @@
         h1 { color: #00adb5; margin-bottom: 5px; }
         p { color: #eeeeee; font-size: 14px; line-height: 1.5; margin-bottom: 20px;}
         
-        /* Кнопки управления */
         .btn {
             background: #00adb5;
             color: white;
@@ -48,7 +47,6 @@
         .btn:active { transform: scale(0.98); }
         .btn.stop { background: #ff2e63; box-shadow: 0 4px 15px rgba(255, 46, 99, 0.4); }
         
-        /* Сетка режимов */
         .modes {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -71,7 +69,6 @@
             color: #00adb5;
         }
 
-        /* Ручные настройки */
         .manual-controls {
             display: none;
             background: #2a2d34;
@@ -84,7 +81,6 @@
         .control-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; }
         
-        /* Стилизация ползунка */
         input[type="range"] {
             width: 100%;
             accent-color: #00adb5;
@@ -118,7 +114,6 @@
         <button class="mode-btn" onclick="setMode('manual', this)">⚙️ Ручной</button>
     </div>
 
-    <!-- Блок ручных настроек (показывается только в режиме 'Ручной') -->
     <div id="manualControls" class="manual-controls">
         <div class="control-group">
             <label>Форма волны:</label>
@@ -154,7 +149,6 @@
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
 
-        // Показываем или скрываем панель ручных настроек
         const manualControls = document.getElementById('manualControls');
         if (mode === 'manual') {
             manualControls.classList.add('show');
@@ -163,7 +157,6 @@
         }
     }
 
-    // Функция обновления звука "на лету" в ручном режиме
     function updateManualSettings() {
         const freq = document.getElementById('freqSlider').value;
         const type = document.getElementById('waveType').value;
@@ -172,7 +165,6 @@
 
         if (isPlaying && currentMode === 'manual' && oscillator) {
             oscillator.type = type;
-            // Плавное изменение частоты, чтобы избежать щелчков
             oscillator.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
         }
     }
@@ -204,7 +196,6 @@
             oscillator.type = 'sine';
             gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
             
-            // Логика качелей для частоты (Свип от 100 до 300 Гц)
             let goingUp = true;
             let currentFreq = 100;
             oscillator.frequency.setValueAtTime(currentFreq, audioCtx.currentTime);
