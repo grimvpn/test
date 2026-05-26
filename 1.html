@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Супер Чистка Динамика PRO</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121214;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            background: #1e1e24;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 { color: #00adb5; margin-bottom: 5px; }
+        p { color: #eeeeee; font-size: 14px; line-height: 1.5; margin-bottom: 20px;}
+        
+        /* Кнопки управления */
+        .btn {
+            background: #00adb5;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 173, 181, 0.4);
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn.stop { background: #ff2e63; box-shadow: 0 4px 15px rgba(255, 46, 99, 0.4); }
+        
+        /* Сетка режимов */
+        .modes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            background: #393e46;
+            color: #eee;
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .mode-btn.active {
+            border-color: #00adb5;
+            background: #222831;
+            color: #00adb5;
+        }
+
+        /* Ручные настройки */
+        .manual-controls {
+            display: none;
+            background: #2a2d34;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .manual-controls.show { display: block; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; }
+        
+        /* Стилизация ползунка */
+        input[type="range"] {
+            width: 100%;
+            accent-color: #00adb5;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            background: #393e46;
+            color: white;
+            border: 1px solid #555;
+            font-family: inherit;
+        }
+        .freq-display {
+            float: right;
+            color: #00adb5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Speaker Cleaner Pro</h1>
+    <p>Профессиональный инструмент для настройки и очистки динамиков.</p>
+
+    <div class="modes">
+        <button class="mode-btn active" onclick="setMode('water', this)">💧 От Воды</button>
+        <button class="mode-btn" onclick="setMode('dust', this)">💨 От Пыли</button>
+        <button class="mode-btn" onclick="setMode('sweep', this)">🌪 Турбо-Свип</button>
+        <button class="mode-btn" onclick="setMode('manual', this)">⚙️ Ручной</button>
+    </div>
+
+    <!-- Блок ручных настроек (показывается только в режиме 'Ручной') -->
+    <div id="manualControls" class="manual-controls">
+        <div class="control-group">
+            <label>Форма волны:</label>
+            <select id="waveType" onchange="updateManualSettings()">
+                <option value="sine">Синусоида (Мягкая, для воды)</option>
+                <option value="square">Квадрат (Резкая, для пыли)</option>
+                <option value="sawtooth">Пила (Агрессивная)</option>
+                <option value="triangle">Треугольник</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Частота: <span class="freq-display" id="freqValue">165 Гц</span></label>
+            <input type="range" id="freqSlider" min="50" max="800" value="165" step="1" oninput="updateManualSettings()">
+        </div>
+    </div>
+
+    <button id="mainBtn" class="btn" onclick="toggleSound()">ЗАПУСТИТЬ ЧИСТКУ</button>
+</div>
+
+<script>
+    let audioCtx = null;
+    let oscillator = null;
+    let gainNode = null;
+    let isPlaying = false;
+    let currentMode = 'water';
+    let intervalId = null;
+    let sweepInterval = null;
+
+    function setMode(mode, btnElement) {
+        if (isPlaying) stopSound(); 
+        currentMode = mode;
+        
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        // Показываем или скрываем панель ручных настроек
+        const manualControls = document.getElementById('manualControls');
+        if (mode === 'manual') {
+            manualControls.classList.add('show');
+        } else {
+            manualControls.classList.remove('show');
+        }
+    }
+
+    // Функция обновления звука "на лету" в ручном режиме
+    function updateManualSettings() {
+        const freq = document.getElementById('freqSlider').value;
+        const type = document.getElementById('waveType').value;
+        
+        document.getElementById('freqValue').textContent = freq + ' Гц';
+
+        if (isPlaying && currentMode === 'manual' && oscillator) {
+            oscillator.type = type;
+            // Плавное изменение частоты, чтобы избежать щелчков
+            oscillator.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
+        }
+    }
+
+    function startSound() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (currentMode === 'water') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(165, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        } 
+        else if (currentMode === 'dust') {
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(120, audioCtx.currentTime);
+            
+            let isMuted = false;
+            intervalId = setInterval(() => {
+                gainNode.gain.setTargetAtTime(isMuted ? 1 : 0.01, audioCtx.currentTime, 0.01);
+                isMuted = !isMuted;
+            }, 120);
+        }
+        else if (currentMode === 'sweep') {
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+            
+            // Логика качелей для частоты (Свип от 100 до 300 Гц)
+            let goingUp = true;
+            let currentFreq = 100;
+            oscillator.frequency.setValueAtTime(currentFreq, audioCtx.currentTime);
+
+            sweepInterval = setInterval(() => {
+                if (goingUp) {
+                    currentFreq += 10;
+                    if (currentFreq >= 300) goingUp = false;
+                } else {
+                    currentFreq -= 10;
+                    if (currentFreq <= 100) goingUp = true;
+                }
+                oscillator.frequency.setTargetAtTime(currentFreq, audioCtx.currentTime, 0.1);
+            }, 100);
+        }
+        else if (currentMode === 'manual') {
+            const freq = document.getElementById('freqSlider').value;
+            const type = document.getElementById('waveType').value;
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        }
+
+        oscillator.start();
+        isPlaying = true;
+        
+        const btn = document.getElementById('mainBtn');
+        btn.textContent = 'ОСТАНОВИТЬ';
+        btn.classList.add('stop');
+    }
+
+    function stopSound() {
+        if (oscillator) {
+            oscillator.stop();
+            oscillator.disconnect();
+        }
+        if (intervalId) clearInterval(intervalId);
+        if (sweepInterval) clearInterval(sweepInterval);
+        if (audioCtx) audioCtx.close();
+        
+        isPlaying = false;
+        
+        const btn = document.getElementById('mainBtn');
+        btn.textContent = 'ЗАПУСТИТЬ ЧИСТКУ';
+        btn.classList.remove('stop');
+    }
+
+    function toggleSound() {
+        if (!isPlaying) {
+            startSound();
+        } else {
+            stopSound();
+        }
+    }
+</script>
+
+</body>
+</html>
