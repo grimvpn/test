@@ -189,7 +189,7 @@
             document.getElementById('gpu-data').innerHTML = html;
         }
 
-        // 5. Сеть и IP (Используем открытый API ipapi.co)
+        // 5. Сеть и IP (С улучшенной системой запасных API)
         async function getNetworkInfo() {
             const nav = window.navigator;
             let html = '';
@@ -201,19 +201,51 @@
                 html += createRow('Задержка (RTT)', `${nav.connection.rtt} мс`);
             }
 
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
+            // Список открытых API для получения IP (в порядке приоритета)
+            const apis = [
+                'https://ipapi.co/json/',           // Детальный, но часто блокируется
+                'https://ipinfo.io/json',           // Отличный сервис, тоже бывают лимиты
+                'https://api.ipify.org?format=json' // Только IP, почти никогда не блокируется
+            ];
+
+            let ipData = null;
+            let currentApi = '';
+
+            // Пробуем запросить API по очереди
+            for (let url of apis) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        ipData = await response.json();
+                        currentApi = url;
+                        break; // Если успешно, выходим из цикла
+                    }
+                } catch (error) {
+                    console.warn(`[Network] Заблокирован доступ к: ${url}`);
+                }
+            }
+
+            // Разбор данных в зависимости от того, какой API сработал
+            if (ipData) {
+                // Универсальное извлечение IP (ключи у API разные)
+                const ip = ipData.ip || 'Неизвестно';
                 
-                html += createRow('IP-адрес', data.ip);
-                html += createRow('Провайдер (ISP)', data.org);
-                html += createRow('Страна', data.country_name);
-                html += createRow('Регион', data.region);
-                html += createRow('Город', data.city);
-                html += createRow('Почтовый индекс', data.postal);
-                html += createRow('Примерные координаты', `${data.latitude}, ${data.longitude}`);
-            } catch (error) {
-                html += createRow('IP-адрес', 'Ошибка (возможно, блокировщик рекламы)');
+                html += createRow('IP-адрес', ip);
+
+                // Если это не просто ipify (который отдает только IP), добавляем детали
+                if (currentApi !== 'https://api.ipify.org?format=json') {
+                    const org = ipData.org || ipData.isp || 'Неизвестно';
+                    const country = ipData.country_name || ipData.country || 'Неизвестно';
+                    const city = ipData.city || 'Неизвестно';
+                    
+                    html += createRow('Провайдер (ISP)', org);
+                    html += createRow('Страна', country);
+                    html += createRow('Город', city);
+                } else {
+                    html += createRow('Доп. данные', 'Заблокированы (работает только базовый IP)');
+                }
+            } else {
+                html += createRow('IP-адрес', '<span style="color:#f87171;">Блокируется расширением (AdBlock/VPN)</span>');
             }
 
             document.getElementById('network-data').innerHTML = html;
@@ -234,8 +266,17 @@
                     let html = '';
                     html += createRow('Широта', position.coords.latitude);
                     html += createRow('Долгота', position.coords.longitude);
-                    html += createRow('Точность (метры)', position.coords.accuracy);
+                    html += createRow('Точность (метры)', Math.round(position.coords.accuracy));
                     html += createRow('Скорость', position.coords.speed !== null ? `${position.coords.speed} м/с` : 'Неизвестно');
+                    
+                    // Ссылка на Google Maps
+                    const mapsLink = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
+                    html += `<div style="margin-top: 10px; text-align: center;">
+                                <a href="${mapsLink}" target="_blank" style="color: var(--accent-color); text-decoration: none; border-bottom: 1px dashed;">
+                                    Открыть на карте
+                                </a>
+                             </div>`;
+                    
                     geoDiv.innerHTML = html;
                 },
                 (error) => {
@@ -252,7 +293,7 @@
             );
         }
 
-        // Запуск всех базовых функций при загрузке
+        // Запуск всех базовых функций при загрузке страницы
         window.onload = () => {
             getDeviceInfo();
             getScreenInfo();
