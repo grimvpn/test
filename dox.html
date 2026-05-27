@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Инспектор данных пользователя</title>
+    <title>Information</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -84,7 +84,7 @@
 </head>
 <body>
 
-    <h1>Анализ данных браузера и сети</h1>
+    <h1>Данные браузера и сети</h1>
     
     <div class="container">
         <div class="card" id="network-card">
@@ -121,7 +121,6 @@
     </div>
 
     <script>
-        // Вспомогательная функция для форматирования строк
         function createRow(label, value) {
             return `<div class="data-row">
                         <span class="data-label">${label}:</span>
@@ -129,7 +128,6 @@
                     </div>`;
         }
 
-        // Парсинг браузера
         function getBrowserName(ua) {
             let browser = "Неизвестно";
             let version = "";
@@ -141,7 +139,6 @@
             return version ? `<span style="color: var(--success-color); font-weight: bold;">${browser} (v. ${version})</span>` : browser;
         }
 
-        // Парсинг ОС
         function getOSName(ua) {
             let os = 'Неизвестная ОС';
             if (ua.includes('Windows')) os = 'Windows';
@@ -154,7 +151,6 @@
             return `${os} / ${isMobile}`;
         }
 
-        // 1. Устройство и ПО
         function getDeviceInfo() {
             const nav = window.navigator;
             const ua = nav.userAgent;
@@ -176,7 +172,6 @@
             document.getElementById('device-data').innerHTML = html;
         }
 
-        // 2. Экран
         function getScreenInfo() {
             const scr = window.screen;
             let html = '';
@@ -188,7 +183,6 @@
             document.getElementById('screen-data').innerHTML = html;
         }
 
-        // 3. Время и Язык
         function getTimeInfo() {
             const date = new Date();
             let html = '';
@@ -200,7 +194,6 @@
             document.getElementById('time-data').innerHTML = html;
         }
 
-        // Создание Canvas Fingerprint хэша
         function getCanvasHash() {
             try {
                 const canvas = document.createElement('canvas');
@@ -227,7 +220,6 @@
             }
         }
 
-        // 4. Графика и Слежение
         function getFingerprintInfo() {
             const canvas = document.createElement('canvas');
             let renderer = 'Скрыто';
@@ -252,7 +244,6 @@
             document.getElementById('gpu-data').innerHTML = html;
         }
 
-        // 5. Сеть и IP
         async function getNetworkInfo() {
             const nav = window.navigator;
             let html = '';
@@ -303,7 +294,6 @@
             document.getElementById('network-data').innerHTML = html;
         }
 
-        // 6. Точная геолокация (Полностью перенесено из вашего рабочего файла si1.html)
         function getExactLocation() {
             const geoDiv = document.getElementById('geo-data');
             geoDiv.innerHTML = "<i style='color: #94a3b8;'>Попытка 1: Поиск спутников GPS...</i>";
@@ -314,7 +304,6 @@
             }
 
             const highAccuracyOptions = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
-            // Главное отличие: timeout 60000 (60 секунд), который позволяет вашему ПК дождаться ответа
             const lowAccuracyOptions = { enableHighAccuracy: false, timeout: 60000, maximumAge: 60000 };
 
             navigator.geolocation.getCurrentPosition(
@@ -346,7 +335,6 @@
             );
         }
 
-        // Вспомогательная функция для отрисовки успешного результата геолокации
         function showGeoData(position, methodUsed) {
             const geoDiv = document.getElementById('geo-data');
             let html = '';
@@ -355,7 +343,6 @@
             html += createRow('Долгота', position.coords.longitude);
             html += createRow('Точность', `± ${Math.round(position.coords.accuracy)} м`);
             
-            // Ссылка исправлена на полностью корректную и рабочую
             const mapsLink = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
             html += `<div style="margin-top: 15px; text-align: center;">
                         <a href="${mapsLink}" target="_blank" style="color: var(--accent-color); text-decoration: none; border-bottom: 1px dashed var(--accent-color); padding-bottom: 2px;">
@@ -365,7 +352,6 @@
             geoDiv.innerHTML = html;
         }
 
-        // Запуск сбора данных при открытии страницы
         window.onload = () => {
             getDeviceInfo();
             getScreenInfo();
