@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инспектор данных пользователя</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --accent-color: #38bdf8;
+            --border-color: #334155;
+            --success-color: #4ade80;
+            --danger-color: #f87171;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 30px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #334155;
+            padding-bottom: 4px;
+        }
+        .data-label {
+            font-weight: bold;
+            color: #94a3b8;
+            padding-right: 15px;
+        }
+        .data-value {
+            text-align: right;
+            word-break: break-all;
+            max-width: 65%;
+        }
+        button {
+            background: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Анализ данных браузера и сети</h1>
+    
+    <div class="container">
+        <div class="card" id="network-card">
+            <h2>🌐 Сеть и Провайдер</h2>
+            <div id="network-data">Загрузка данных...</div>
+        </div>
+
+        <div class="card" id="device-card">
+            <h2>💻 Устройство и ПО</h2>
+            <div id="device-data"></div>
+        </div>
+
+        <div class="card" id="gpu-card">
+            <h2>👁️ Слежение (Fingerprints)</h2>
+            <div id="gpu-data"></div>
+        </div>
+
+        <div class="card" id="screen-card">
+            <h2>🖥️ Характеристики экрана</h2>
+            <div id="screen-data"></div>
+        </div>
+
+        <div class="card" id="time-card">
+            <h2>⏱️ Время и Локаль</h2>
+            <div id="time-data"></div>
+        </div>
+
+        <div class="card" id="geo-card">
+            <h2>📍 Точная Геолокация</h2>
+            <p style="font-size: 0.9em; color: #94a3b8;">Требует разрешения пользователя.</p>
+            <button onclick="getExactLocation()">Запросить доступ к геоданным</button>
+            <div id="geo-data" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Вспомогательная функция для форматирования строк
+        function createRow(label, value) {
+            return `<div class="data-row">
+                        <span class="data-label">${label}:</span>
+                        <span class="data-value">${value || 'Недоступно'}</span>
+                    </div>`;
+        }
+
+        // Парсинг браузера
+        function getBrowserName(ua) {
+            let browser = "Неизвестно";
+            let version = "";
+            if (ua.includes("Edg")) { browser = "Microsoft Edge"; version = ua.match(/Edg\/([\d.]+)/)?.[1]; }
+            else if (ua.includes("OPR") || ua.includes("Opera")) { browser = "Opera"; version = ua.match(/(OPR|Opera)\/([\d.]+)/)?.[2]; }
+            else if (ua.includes("Firefox")) { browser = "Mozilla Firefox"; version = ua.match(/Firefox\/([\d.]+)/)?.[1]; }
+            else if (ua.includes("Chrome")) { browser = "Google Chrome"; version = ua.match(/Chrome\/([\d.]+)/)?.[1]; }
+            else if (ua.includes("Safari") && !ua.includes("Chrome")) { browser = "Apple Safari"; version = ua.match(/Version\/([\d.]+)/)?.[1]; }
+            return version ? `<span style="color: var(--success-color); font-weight: bold;">${browser} (v. ${version})</span>` : browser;
+        }
+
+        // Парсинг ОС
+        function getOSName(ua) {
+            let os = 'Неизвестная ОС';
+            if (ua.includes('Windows')) os = 'Windows';
+            else if (ua.includes('Mac')) os = 'macOS';
+            else if (ua.includes('Linux')) os = 'Linux';
+            else if (ua.includes('Android')) os = 'Android';
+            else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+            
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|IEMobile|Opera Mini/.test(ua) ? 'Мобильное устройство' : 'ПК (Desktop)';
+            return `${os} / ${isMobile}`;
+        }
+
+        // 1. Устройство и ПО
+        function getDeviceInfo() {
+            const nav = window.navigator;
+            const ua = nav.userAgent;
+            let html = '';
+            
+            html += createRow('Браузер', getBrowserName(ua));
+            html += createRow('ОС и Тип', getOSName(ua));
+            html += createRow('Тема системы', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Тёмная' : 'Светлая');
+            html += createRow('Ядра процессора (CPU)', nav.hardwareConcurrency ? `${nav.hardwareConcurrency} ядер` : 'Скрыто');
+            html += createRow('ОЗУ (RAM)', nav.deviceMemory ? `~${nav.deviceMemory} ГБ` : 'Скрыто');
+            html += createRow('Сенсор (Touch)', nav.maxTouchPoints > 0 ? `<span style="color:var(--success-color)">Да (Касаний: ${nav.maxTouchPoints})</span>` : 'Нет (Мышь)');
+            html += createRow('Cookies', nav.cookieEnabled ? '<span style="color:var(--success-color)">Включены</span>' : '<span style="color:var(--danger-color)">Отключены</span>');
+            
+            html += `<details style="margin-top: 10px; font-size: 0.8em; color: #94a3b8;">
+                        <summary style="cursor: pointer; outline: none;">Показать полный User-Agent</summary>
+                        <div style="padding-top: 5px; word-break: break-all;">${ua}</div>
+                     </details>`;
+                     
+            document.getElementById('device-data').innerHTML = html;
+        }
+
+        // 2. Экран
+        function getScreenInfo() {
+            const scr = window.screen;
+            let html = '';
+            html += createRow('Разрешение экрана', `${scr.width} x ${scr.height}`);
+            html += createRow('Доступная область', `${scr.availWidth} x ${scr.availHeight}`);
+            html += createRow('Глубина цвета', `${scr.colorDepth} бит`);
+            html += createRow('Масштаб (Pixel Ratio)', window.devicePixelRatio);
+            html += createRow('Размер окна (внутри)', `${window.innerWidth} x ${window.innerHeight}`);
+            document.getElementById('screen-data').innerHTML = html;
+        }
+
+        // 3. Время и Язык
+        function getTimeInfo() {
+            const date = new Date();
+            let html = '';
+            html += createRow('Местное время', date.toLocaleString());
+            html += createRow('Часовой пояс', Intl.DateTimeFormat().resolvedOptions().timeZone);
+            html += createRow('Отклонение от UTC', `${-date.getTimezoneOffset() / 60} ч.`);
+            html += createRow('Главный язык', navigator.language);
+            html += createRow('Все языки браузера', navigator.languages.join(', '));
+            document.getElementById('time-data').innerHTML = html;
+        }
+
+        // Создание Canvas Fingerprint хэша
+        function getCanvasHash() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.font = '18pt Arial';
+                ctx.fillText('Fingerprint', 2, 20);
+                ctx.fillStyle = 'rgba(100,200,50,0.7)';
+                ctx.fillText('Canvas', 4, 17);
+                
+                const dataURL = canvas.toDataURL();
+                let hash = 0;
+                for (let i = 0; i < dataURL.length; i++) {
+                    const char = dataURL.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return Math.abs(hash).toString(16).toUpperCase();
+            } catch (e) {
+                return 'Заблокировано';
+            }
+        }
+
+        // 4. Графика и Слежение
+        function getFingerprintInfo() {
+            const canvas = document.createElement('canvas');
+            let renderer = 'Скрыто';
+            let vendor = 'Скрыто';
+            
+            try {
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                        renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
+                }
+            } catch (e) {}
+
+            let html = '';
+            html += createRow('Производитель GPU', vendor);
+            html += createRow('Модель Видеокарты', `<span style="color: var(--accent-color); font-weight: bold;">${renderer}</span>`);
+            html += createRow('Canvas Fingerprint', `<span style="color: var(--success-color);">${getCanvasHash()}</span>`);
+            html += createRow('Do Not Track (DNT)', navigator.doNotTrack === "1" ? 'Активирован' : 'Отключен/Игнорируется');
+            document.getElementById('gpu-data').innerHTML = html;
+        }
+
+        // 5. Сеть и IP
+        async function getNetworkInfo() {
+            const nav = window.navigator;
+            let html = '';
+            
+            const isOnline = nav.onLine ? '<span style="color:var(--success-color)">Онлайн</span>' : '<span style="color:var(--danger-color)">Оффлайн</span>';
+            html += createRow('Статус интернета', isOnline);
+            
+            if (nav.connection) {
+                html += createRow('Оценка скорости', nav.connection.effectiveType.toUpperCase());
+                html += createRow('Задержка (RTT)', `${nav.connection.rtt} мс`);
+            }
+
+            const apis = [
+                'https://ipapi.co/json/',
+                'https://ipinfo.io/json',
+                'https://api.ipify.org?format=json'
+            ];
+
+            let ipData = null;
+            let currentApi = '';
+
+            for (let url of apis) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        ipData = await response.json();
+                        currentApi = url;
+                        break;
+                    }
+                } catch (error) {}
+            }
+
+            if (ipData) {
+                const ip = ipData.ip || 'Неизвестно';
+                html += createRow('IP-адрес', `<span style="color: var(--danger-color); font-weight: bold;">${ip}</span>`);
+
+                if (currentApi !== 'https://api.ipify.org?format=json') {
+                    html += createRow('Провайдер (ISP)', ipData.org || ipData.isp || 'Неизвестно');
+                    html += createRow('Страна', `${ipData.country_name || ipData.country || ''}`);
+                    html += createRow('Город / Регион', `${ipData.city || '—'}, ${ipData.region || '—'}`);
+                } else {
+                    html += createRow('Провайдер/Город', 'Скрыты блокировщиком');
+                }
+            } else {
+                html += createRow('IP-адрес', '<span style="color:var(--danger-color);">Блокируется (AdBlock/VPN)</span>');
+            }
+
+            document.getElementById('network-data').innerHTML = html;
+        }
+
+        // 6. Точная геолокация (Полностью перенесено из вашего рабочего файла si1.html)
+        function getExactLocation() {
+            const geoDiv = document.getElementById('geo-data');
+            geoDiv.innerHTML = "<i style='color: #94a3b8;'>Попытка 1: Поиск спутников GPS...</i>";
+
+            if (!navigator.geolocation) {
+                geoDiv.innerHTML = createRow('Ошибка', 'Геолокация не поддерживается вашим браузером');
+                return;
+            }
+
+            const highAccuracyOptions = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
+            // Главное отличие: timeout 60000 (60 секунд), который позволяет вашему ПК дождаться ответа
+            const lowAccuracyOptions = { enableHighAccuracy: false, timeout: 60000, maximumAge: 60000 };
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    showGeoData(position, "GPS / Высокая точность");
+                },
+                (error) => {
+                    console.warn("GPS не ответил за 5 сек. Переключаемся на сети...");
+                    geoDiv.innerHTML = "<i style='color: #94a3b8;'>Попытка 2: GPS недоступен, определяем по сетям...</i>";
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            showGeoData(position, "Wi-Fi, IP / Базовая точность");
+                        },
+                        (errorLow) => {
+                            let msg = '';
+                            switch(errorLow.code) {
+                                case errorLow.PERMISSION_DENIED: msg = "Доступ заблокирован пользователем."; break;
+                                case errorLow.POSITION_UNAVAILABLE: msg = "Координаты недоступны."; break;
+                                case errorLow.TIMEOUT: msg = "Превышено время ожидания."; break;
+                                default: msg = "Неизвестная ошибка геоданных."; break;
+                            }
+                            geoDiv.innerHTML = createRow('Ошибка', `<span style="color:#f87171;">${msg}</span>`);
+                        },
+                        lowAccuracyOptions
+                    );
+                },
+                highAccuracyOptions
+            );
+        }
+
+        // Вспомогательная функция для отрисовки успешного результата геолокации
+        function showGeoData(position, methodUsed) {
+            const geoDiv = document.getElementById('geo-data');
+            let html = '';
+            html += createRow('Метод определения', methodUsed);
+            html += createRow('Широта', position.coords.latitude);
+            html += createRow('Долгота', position.coords.longitude);
+            html += createRow('Точность', `± ${Math.round(position.coords.accuracy)} м`);
+            
+            // Ссылка исправлена на полностью корректную и рабочую
+            const mapsLink = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
+            html += `<div style="margin-top: 15px; text-align: center;">
+                        <a href="${mapsLink}" target="_blank" style="color: var(--accent-color); text-decoration: none; border-bottom: 1px dashed var(--accent-color); padding-bottom: 2px;">
+                            📍 Открыть на Google Maps
+                        </a>
+                     </div>`;
+            geoDiv.innerHTML = html;
+        }
+
+        // Запуск сбора данных при открытии страницы
+        window.onload = () => {
+            getDeviceInfo();
+            getScreenInfo();
+            getTimeInfo();
+            getFingerprintInfo();
+            getNetworkInfo();
+        };
+    </script>
+</body>
+</html>
