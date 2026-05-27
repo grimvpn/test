@@ -255,7 +255,7 @@
             }
 
             const highAccuracyOptions = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
-            const lowAccuracyOptions = { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 };
+            const lowAccuracyOptions = { enableHighAccuracy: false, timeout: 60000, maximumAge: 60000 };
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
