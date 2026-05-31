@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoundForge Web Studio Pro</title>
+    <title>AudioEditor</title>
     
     <script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/wavesurfer.min.js"></script>
     <script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/plugins/regions.min.js"></script>
@@ -77,7 +77,6 @@
             border-radius: 6px; padding: 8px; color: white; font-size: 13px; outline: none;
         }
 
-        /* Радио-кнопки (Trim / Cut) */
         .mode-toggle { display: flex; gap: 8px; background: var(--bg-dark); padding: 4px; border-radius: 8px; border: 1px solid var(--border-light); }
         .mode-toggle label { 
             flex: 1; text-align: center; padding: 6px; margin: 0; cursor: pointer; border-radius: 4px; transition: 0.2s;
@@ -95,7 +94,6 @@
         .timeline-card {
             background: var(--bg-panel); border: 1px solid var(--border-light); border-radius: 12px; padding: 20px;
             position: relative; flex: 1; display: flex; flex-direction: column;
-            /* Фикс дергания: жесткое ограничение контейнера */
             overflow: hidden; contain: strict; min-height: 250px;
         }
 
@@ -180,7 +178,7 @@
                 <h3>Мастер</h3>
                 <div class="control-item">
                     <label>Общая громкость</label>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8">
+                    <input type="range" id="volumeSlider" min="0" max="5" step="0.05" value="0.8">
                 </div>
             </div>
         </aside>
@@ -216,9 +214,8 @@
         let activeRegion = null;
         let originalAudioBuffer = null;
         let isLooping = false;
-        let editMode = 'keep'; // 'keep' или 'remove'
+        let editMode = 'keep';
 
-        // Элементы
         const btnPlay = document.getElementById('btnPlay');
         const timeDisplay = document.getElementById('timeDisplay');
         const radioKeep = document.getElementById('radioKeep');
@@ -229,7 +226,7 @@
         const fadeOutInput = document.getElementById('fadeOutDuration');
         const baseVolumeSlider = document.getElementById('volumeSlider');
 
-        // Смена режима
+ 
         document.querySelectorAll('input[name="editMode"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 editMode = e.target.value;
@@ -247,12 +244,12 @@
             wavesurfer = WaveSurfer.create({
                 container: '#waveform',
                 waveColor: '#4b5563',
-                progressColor: '#6b7280', // Нейтральный цвет, так как синим/красным выделяем регион
+                progressColor: '#6b7280',
                 cursorColor: '#ffffff',
                 height: 140,
                 barWidth: 2,
                 barGap: 1,
-                minPxPerSec: 10, // Базовый зум
+                minPxPerSec: 10,
                 hideScrollbar: false,
                 plugins: [ WaveSurfer.Timeline.create({ container: '#wave-timeline' }) ]
             });
@@ -280,15 +277,12 @@
                 document.getElementById('zoomSlider').disabled = false;
             });
 
-            // Главная логика воспроизведения и живых эффектов
             wavesurfer.on('timeupdate', (currentTime) => {
                 updateTimer(currentTime);
 
                 if (!activeRegion) return;
 
-                // 1. Логика пропуска / остановки (Trim vs Cut)
                 if (editMode === 'keep') {
-                    // Если вышли за пределы выделенного в режиме "Оставить"
                     if (currentTime >= activeRegion.end) {
                         if (isLooping) {
                             wavesurfer.setTime(activeRegion.start);
@@ -299,17 +293,14 @@
                         }
                     }
                 } else if (editMode === 'remove') {
-                    // Если зашли в красную зону в режиме "Удалить" — перепрыгиваем
                     if (currentTime >= activeRegion.start && currentTime < activeRegion.end - 0.05) {
                         wavesurfer.setTime(activeRegion.end);
                     }
-                    // Петля для всего файла с вырезанным куском
                     if (isLooping && currentTime >= wavesurfer.getDuration() - 0.05) {
                         wavesurfer.setTime(0);
                     }
                 }
 
-                // 2. Логика живых Fade-эффектов
                 applyRealTimeFades(currentTime);
             });
 
@@ -322,7 +313,6 @@
             wavesurfer.load(fileUrl);
         }
 
-        // Вычисление громкости для предпросмотра фейдов
         function applyRealTimeFades(time) {
             let gain = 1.0;
             const fadeIn = parseFloat(fadeInInput.value) || 0;
@@ -347,7 +337,6 @@
                 }
             }
             
-            // Если вышли за границы в режиме Keep, звук должен быть в нуле
             if (editMode === 'keep' && (time < activeRegion.start || time > activeRegion.end)) {
                 gain = 0;
             }
@@ -362,7 +351,6 @@
             timeDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
         }
 
-        // Зум с использованием встроенной механики wavesurfer v7
         document.getElementById('zoomSlider').addEventListener('input', (e) => {
             if (wavesurfer) {
                 wavesurfer.zoom(Number(e.target.value));
@@ -390,7 +378,6 @@
                 wavesurfer.pause();
                 btnPlay.innerText = "Play";
             } else {
-                // Если режим Keep и курсор вне зоны — ставим в начало зоны
                 const t = wavesurfer.getCurrentTime();
                 if (editMode === 'keep' && (t < activeRegion.start || t >= activeRegion.end)) {
                     wavesurfer.setTime(activeRegion.start);
@@ -406,9 +393,6 @@
             e.target.style.borderColor = isLooping ? "var(--accent-blue)" : "var(--border-light)";
         });
 
-        // ==========================================
-        // ДВИЖОК ЭКСПОРТА (Trim / Cut / Fades / MP3)
-        // ==========================================
         document.getElementById('exportBtn').addEventListener('click', () => {
             if (!originalAudioBuffer || !activeRegion) return;
 
@@ -422,7 +406,6 @@
 
             let finalSamples = 0;
             
-            // Высчитываем длину итогового буфера
             if (editMode === 'keep') {
                 finalSamples = Math.floor((endS - startS) * sr);
             } else {
@@ -441,20 +424,17 @@
                 let outIndex = 0;
 
                 if (editMode === 'keep') {
-                    // Копируем только выделенное
                     const startIdx = Math.floor(startS * sr);
                     for (let i = 0; i < finalSamples; i++) {
                         let sample = orig[startIdx + i] || 0;
                         out[outIndex++] = applyMathFade(sample, i, finalSamples, fadeInSamples, fadeOutSamples);
                     }
                 } else {
-                    // Копируем кусок ДО выделения
                     const cutStartIdx = Math.floor(startS * sr);
                     for (let i = 0; i < cutStartIdx; i++) {
                         let sample = orig[i] || 0;
                         out[outIndex++] = applyMathFade(sample, i, finalSamples, fadeInSamples, fadeOutSamples);
                     }
-                    // Копируем кусок ПОСЛЕ выделения
                     const cutEndIdx = Math.floor(endS * sr);
                     for (let i = cutEndIdx; i < orig.length; i++) {
                         let sample = orig[i] || 0;
@@ -463,7 +443,6 @@
                 }
             }
 
-            // Выбор кодека
             if (format === 'mp3' || format === 'm4a' || format === 'flac') {
                 if (format !== 'mp3') alert(`Браузер не поддерживает прямое кодирование в ${format.toUpperCase()}. Файл будет сохранен в максимальном качестве MP3 (320kbps).`);
                 exportToMP3(outBuffer);
@@ -472,7 +451,6 @@
             }
         });
 
-        // Функция применения фейдов к массиву
         function applyMathFade(sample, currentIndex, totalSamples, fadeInSmp, fadeOutSmp) {
             if (currentIndex < fadeInSmp && fadeInSmp > 0) {
                 return sample * (currentIndex / fadeInSmp);
@@ -483,11 +461,9 @@
             return sample;
         }
 
-        // Кодировщик MP3 с использованием lamejs
         function exportToMP3(buffer) {
             const channels = buffer.numberOfChannels;
             const sampleRate = buffer.sampleRate;
-            // Инициализация LameJS кодировщика (320 kbps)
             const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 320);
             const mp3Data = [];
 
@@ -496,7 +472,6 @@
             
             const sampleBlockSize = 1152;
             
-            // Преобразование Float32 (-1.0 to 1.0) в Int16 (-32768 to 32767)
             const leftInt16 = new Int16Array(left.length);
             const rightInt16 = new Int16Array(right.length);
             
@@ -519,7 +494,6 @@
             downloadBlob(new Blob(mp3Data, { type: 'audio/mp3' }), 'soundforge_export.mp3');
         }
 
-        // Кодировщик WAV
         function exportToWAV(buffer) {
             const numOfChan = buffer.numberOfChannels;
             const length = buffer.length * numOfChan * 2 + 44;
