@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundForge Web Studio Pro</title>
+    
+    <script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/wavesurfer.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/plugins/regions.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/plugins/timeline.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f1115;
+            --bg-panel: #181b22;
+            --bg-surface: #222630;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-light);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo span { background: var(--accent-blue); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; text-transform: uppercase; }
+
+        .header-controls { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-light);
+            padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn:hover:not(:disabled) { background: #2d3342; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-primary { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+        .btn-primary:hover:not(:disabled) { background: #2563eb; }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        aside {
+            width: 320px; background: var(--bg-panel); border-right: 1px solid var(--border-light);
+            padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
+        }
+
+        .panel-section { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; padding: 14px; }
+        .panel-section h3 { font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; }
+
+        .control-item { margin-bottom: 10px; }
+        label { display: block; font-size: 12px; margin-bottom: 6px; color: #d1d5db; }
+        
+        input[type="number"], select {
+            width: 100%; background: var(--bg-dark); border: 1px solid var(--border-light);
+            border-radius: 6px; padding: 8px; color: white; font-size: 13px; outline: none;
+        }
+
+        /* Радио-кнопки (Trim / Cut) */
+        .mode-toggle { display: flex; gap: 8px; background: var(--bg-dark); padding: 4px; border-radius: 8px; border: 1px solid var(--border-light); }
+        .mode-toggle label { 
+            flex: 1; text-align: center; padding: 6px; margin: 0; cursor: pointer; border-radius: 4px; transition: 0.2s;
+        }
+        .mode-toggle input[type="radio"] { display: none; }
+        .mode-toggle input[type="radio"]:checked + label { background: var(--accent-blue); color: white; font-weight: bold; }
+        #radioRemove:checked + label { background: var(--accent-red); }
+
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"]::-webkit-slider-runnable-track { background: var(--bg-dark); height: 6px; border-radius: 3px; border: 1px solid var(--border-light); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--text-main); cursor: pointer; margin-top: -6px; }
+
+        .workspace { flex: 1; display: flex; flex-direction: column; padding: 24px; gap: 16px; background: var(--bg-dark); }
+
+        .timeline-card {
+            background: var(--bg-panel); border: 1px solid var(--border-light); border-radius: 12px; padding: 20px;
+            position: relative; flex: 1; display: flex; flex-direction: column;
+            /* Фикс дергания: жесткое ограничение контейнера */
+            overflow: hidden; contain: strict; min-height: 250px;
+        }
+
+        #waveform-container {
+            flex: 1; position: relative; width: 100%; height: 100%; overflow-x: auto; overflow-y: hidden;
+        }
+
+        #waveform { min-height: 120px; }
+        #wave-timeline { margin-top: 10px; }
+
+        .upload-area {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-panel);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; z-index: 10;
+        }
+
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel);
+            border: 1px solid var(--border-light); border-radius: 8px; padding: 16px 20px;
+        }
+
+        .time-counter { font-family: monospace; font-size: 20px; font-weight: bold; color: var(--accent-blue); min-width: 120px; }
+        .bottom-controls { display: flex; gap: 12px; }
+        .zoom-container { display: flex; align-items: center; gap: 10px; width: 220px; font-size: 12px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">SoundForge <span>Pro</span></div>
+        <div class="header-controls">
+            <button class="btn" onclick="document.getElementById('audioFile').click()">Открыть файл</button>
+            
+            <select id="exportFormat" class="btn">
+                <option value="mp3" selected>MP3</option>
+                <option value="wav">WAV</option>
+                <option value="m4a">M4A (Экспериментально)</option>
+                <option value="flac">FLAC (Экспериментально)</option>
+            </select>
+            
+            <button class="btn btn-primary" id="exportBtn" disabled>Сохранить</button>
+            <input type="file" id="audioFile" accept="audio/*,video/mp4" style="display: none;">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside>
+            <div class="panel-section">
+                <h3>Режим редактирования</h3>
+                <div class="mode-toggle">
+                    <input type="radio" name="editMode" id="radioKeep" value="keep" checked>
+                    <label for="radioKeep">Оставить</label>
+                    <input type="radio" name="editMode" id="radioRemove" value="remove">
+                    <label for="radioRemove">Вырезать</label>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Границы (сек)</h3>
+                <div class="control-item">
+                    <label>Начало</label>
+                    <input type="number" id="inputStart" value="0" min="0" step="0.01">
+                </div>
+                <div class="control-item">
+                    <label>Конец</label>
+                    <input type="number" id="inputEnd" value="0" min="0" step="0.01">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Эффекты переходов</h3>
+                <div class="control-item">
+                    <label>Плавное начало (Fade-In)</label>
+                    <input type="number" id="fadeInDuration" value="0" min="0" max="10" step="0.5">
+                </div>
+                <div class="control-item">
+                    <label>Плавный конец (Fade-Out)</label>
+                    <input type="number" id="fadeOutDuration" value="0" min="0" max="10" step="0.5">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Мастер</h3>
+                <div class="control-item">
+                    <label>Общая громкость</label>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8">
+                </div>
+            </div>
+        </aside>
+
+        <main class="workspace">
+            <div class="timeline-card">
+                <div class="upload-area" id="uploadArea">
+                    <button class="btn btn-primary" onclick="document.getElementById('audioFile').click()">Выбрать аудио или видео</button>
+                </div>
+                <div id="waveform-container">
+                    <div id="waveform"></div>
+                    <div id="wave-timeline"></div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="time-counter" id="timeDisplay">00:00.00</div>
+                <div class="bottom-controls">
+                    <button class="btn" id="btnPlay" disabled>Play</button>
+                    <button class="btn" id="btnLoop" disabled>Петля: Выкл</button>
+                </div>
+                <div class="zoom-container">
+                    <span>Zoom:</span>
+                    <input type="range" id="zoomSlider" min="10" max="300" value="10" disabled>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let wavesurfer = null;
+        let wsRegions = null;
+        let activeRegion = null;
+        let originalAudioBuffer = null;
+        let isLooping = false;
+        let editMode = 'keep'; // 'keep' или 'remove'
+
+        // Элементы
+        const btnPlay = document.getElementById('btnPlay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const radioKeep = document.getElementById('radioKeep');
+        const radioRemove = document.getElementById('radioRemove');
+        const inputStart = document.getElementById('inputStart');
+        const inputEnd = document.getElementById('inputEnd');
+        const fadeInInput = document.getElementById('fadeInDuration');
+        const fadeOutInput = document.getElementById('fadeOutDuration');
+        const baseVolumeSlider = document.getElementById('volumeSlider');
+
+        // Смена режима
+        document.querySelectorAll('input[name="editMode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                editMode = e.target.value;
+                if(activeRegion) {
+                    activeRegion.setOptions({ 
+                        color: editMode === 'keep' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.3)' 
+                    });
+                }
+            });
+        });
+
+        function initStudio(fileUrl) {
+            if (wavesurfer) wavesurfer.destroy();
+
+            wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#4b5563',
+                progressColor: '#6b7280', // Нейтральный цвет, так как синим/красным выделяем регион
+                cursorColor: '#ffffff',
+                height: 140,
+                barWidth: 2,
+                barGap: 1,
+                minPxPerSec: 10, // Базовый зум
+                hideScrollbar: false,
+                plugins: [ WaveSurfer.Timeline.create({ container: '#wave-timeline' }) ]
+            });
+
+            wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
+
+            wavesurfer.on('ready', () => {
+                const duration = wavesurfer.getDuration();
+                
+                inputStart.max = duration; inputEnd.max = duration;
+                inputStart.value = 0; inputEnd.value = duration.toFixed(2);
+
+                wsRegions.clearRegions();
+                activeRegion = wsRegions.addRegion({
+                    start: 0,
+                    end: duration * 0.5,
+                    color: 'rgba(59, 130, 246, 0.3)',
+                    drag: true, resize: true
+                });
+
+                document.getElementById('uploadArea').style.display = 'none';
+                btnPlay.disabled = false;
+                document.getElementById('btnLoop').disabled = false;
+                document.getElementById('exportBtn').disabled = false;
+                document.getElementById('zoomSlider').disabled = false;
+            });
+
+            // Главная логика воспроизведения и живых эффектов
+            wavesurfer.on('timeupdate', (currentTime) => {
+                updateTimer(currentTime);
+
+                if (!activeRegion) return;
+
+                // 1. Логика пропуска / остановки (Trim vs Cut)
+                if (editMode === 'keep') {
+                    // Если вышли за пределы выделенного в режиме "Оставить"
+                    if (currentTime >= activeRegion.end) {
+                        if (isLooping) {
+                            wavesurfer.setTime(activeRegion.start);
+                        } else {
+                            wavesurfer.pause();
+                            wavesurfer.setTime(activeRegion.end);
+                            btnPlay.innerText = "Play";
+                        }
+                    }
+                } else if (editMode === 'remove') {
+                    // Если зашли в красную зону в режиме "Удалить" — перепрыгиваем
+                    if (currentTime >= activeRegion.start && currentTime < activeRegion.end - 0.05) {
+                        wavesurfer.setTime(activeRegion.end);
+                    }
+                    // Петля для всего файла с вырезанным куском
+                    if (isLooping && currentTime >= wavesurfer.getDuration() - 0.05) {
+                        wavesurfer.setTime(0);
+                    }
+                }
+
+                // 2. Логика живых Fade-эффектов
+                applyRealTimeFades(currentTime);
+            });
+
+            wsRegions.on('region-updated', (region) => {
+                activeRegion = region;
+                inputStart.value = region.start.toFixed(2);
+                inputEnd.value = region.end.toFixed(2);
+            });
+
+            wavesurfer.load(fileUrl);
+        }
+
+        // Вычисление громкости для предпросмотра фейдов
+        function applyRealTimeFades(time) {
+            let gain = 1.0;
+            const fadeIn = parseFloat(fadeInInput.value) || 0;
+            const fadeOut = parseFloat(fadeOutInput.value) || 0;
+            const baseVol = parseFloat(baseVolumeSlider.value);
+
+            if (editMode === 'keep') {
+                const s = activeRegion.start;
+                const e = activeRegion.end;
+                
+                if (time < s + fadeIn && fadeIn > 0) {
+                    gain = Math.max(0, (time - s) / fadeIn);
+                } else if (time > e - fadeOut && fadeOut > 0) {
+                    gain = Math.max(0, (e - time) / fadeOut);
+                }
+            } else if (editMode === 'remove') {
+                const totalDuration = wavesurfer.getDuration();
+                if (time < fadeIn && fadeIn > 0) {
+                    gain = Math.max(0, time / fadeIn);
+                } else if (time > totalDuration - fadeOut && fadeOut > 0) {
+                    gain = Math.max(0, (totalDuration - time) / fadeOut);
+                }
+            }
+            
+            // Если вышли за границы в режиме Keep, звук должен быть в нуле
+            if (editMode === 'keep' && (time < activeRegion.start || time > activeRegion.end)) {
+                gain = 0;
+            }
+
+            wavesurfer.setVolume(gain * baseVol);
+        }
+
+        function updateTimer(time) {
+            let mins = Math.floor(time / 60);
+            let secs = Math.floor(time % 60);
+            let ms = Math.floor((time % 1) * 100);
+            timeDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+        }
+
+        // Зум с использованием встроенной механики wavesurfer v7
+        document.getElementById('zoomSlider').addEventListener('input', (e) => {
+            if (wavesurfer) {
+                wavesurfer.zoom(Number(e.target.value));
+            }
+        });
+
+        document.getElementById('audioFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const objectUrl = URL.createObjectURL(file);
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                ctx.decodeAudioData(evt.target.result, function(buffer) {
+                    originalAudioBuffer = buffer;
+                });
+            };
+            reader.readAsArrayBuffer(file);
+            initStudio(objectUrl);
+        });
+
+        btnPlay.addEventListener('click', () => {
+            if (wavesurfer.isPlaying()) {
+                wavesurfer.pause();
+                btnPlay.innerText = "Play";
+            } else {
+                // Если режим Keep и курсор вне зоны — ставим в начало зоны
+                const t = wavesurfer.getCurrentTime();
+                if (editMode === 'keep' && (t < activeRegion.start || t >= activeRegion.end)) {
+                    wavesurfer.setTime(activeRegion.start);
+                }
+                wavesurfer.play();
+                btnPlay.innerText = "Pause";
+            }
+        });
+
+        document.getElementById('btnLoop').addEventListener('click', (e) => {
+            isLooping = !isLooping;
+            e.target.innerText = isLooping ? "Петля: Вкл" : "Петля: Выкл";
+            e.target.style.borderColor = isLooping ? "var(--accent-blue)" : "var(--border-light)";
+        });
+
+        // ==========================================
+        // ДВИЖОК ЭКСПОРТА (Trim / Cut / Fades / MP3)
+        // ==========================================
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (!originalAudioBuffer || !activeRegion) return;
+
+            const format = document.getElementById('exportFormat').value;
+            const ctx = new AudioContext();
+            const sr = originalAudioBuffer.sampleRate;
+            
+            const startS = activeRegion.start;
+            const endS = activeRegion.end;
+            const totalOrigS = originalAudioBuffer.duration;
+
+            let finalSamples = 0;
+            
+            // Высчитываем длину итогового буфера
+            if (editMode === 'keep') {
+                finalSamples = Math.floor((endS - startS) * sr);
+            } else {
+                finalSamples = Math.floor((startS + (totalOrigS - endS)) * sr);
+            }
+
+            const outBuffer = ctx.createBuffer(originalAudioBuffer.numberOfChannels, finalSamples, sr);
+
+            const fadeInSamples = Math.floor((parseFloat(fadeInInput.value) || 0) * sr);
+            const fadeOutSamples = Math.floor((parseFloat(fadeOutInput.value) || 0) * sr);
+
+            for (let ch = 0; ch < originalAudioBuffer.numberOfChannels; ch++) {
+                const orig = originalAudioBuffer.getChannelData(ch);
+                const out = outBuffer.getChannelData(ch);
+
+                let outIndex = 0;
+
+                if (editMode === 'keep') {
+                    // Копируем только выделенное
+                    const startIdx = Math.floor(startS * sr);
+                    for (let i = 0; i < finalSamples; i++) {
+                        let sample = orig[startIdx + i] || 0;
+                        out[outIndex++] = applyMathFade(sample, i, finalSamples, fadeInSamples, fadeOutSamples);
+                    }
+                } else {
+                    // Копируем кусок ДО выделения
+                    const cutStartIdx = Math.floor(startS * sr);
+                    for (let i = 0; i < cutStartIdx; i++) {
+                        let sample = orig[i] || 0;
+                        out[outIndex++] = applyMathFade(sample, i, finalSamples, fadeInSamples, fadeOutSamples);
+                    }
+                    // Копируем кусок ПОСЛЕ выделения
+                    const cutEndIdx = Math.floor(endS * sr);
+                    for (let i = cutEndIdx; i < orig.length; i++) {
+                        let sample = orig[i] || 0;
+                        out[outIndex++] = applyMathFade(sample, outIndex, finalSamples, fadeInSamples, fadeOutSamples);
+                    }
+                }
+            }
+
+            // Выбор кодека
+            if (format === 'mp3' || format === 'm4a' || format === 'flac') {
+                if (format !== 'mp3') alert(`Браузер не поддерживает прямое кодирование в ${format.toUpperCase()}. Файл будет сохранен в максимальном качестве MP3 (320kbps).`);
+                exportToMP3(outBuffer);
+            } else {
+                exportToWAV(outBuffer);
+            }
+        });
+
+        // Функция применения фейдов к массиву
+        function applyMathFade(sample, currentIndex, totalSamples, fadeInSmp, fadeOutSmp) {
+            if (currentIndex < fadeInSmp && fadeInSmp > 0) {
+                return sample * (currentIndex / fadeInSmp);
+            }
+            if (currentIndex > (totalSamples - fadeOutSmp) && fadeOutSmp > 0) {
+                return sample * ((totalSamples - currentIndex) / fadeOutSmp);
+            }
+            return sample;
+        }
+
+        // Кодировщик MP3 с использованием lamejs
+        function exportToMP3(buffer) {
+            const channels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            // Инициализация LameJS кодировщика (320 kbps)
+            const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 320);
+            const mp3Data = [];
+
+            const left = buffer.getChannelData(0);
+            const right = channels > 1 ? buffer.getChannelData(1) : left;
+            
+            const sampleBlockSize = 1152;
+            
+            // Преобразование Float32 (-1.0 to 1.0) в Int16 (-32768 to 32767)
+            const leftInt16 = new Int16Array(left.length);
+            const rightInt16 = new Int16Array(right.length);
+            
+            for (let i = 0; i < left.length; i++) {
+                leftInt16[i] = left[i] < 0 ? left[i] * 32768 : left[i] * 32767;
+                if(channels > 1) rightInt16[i] = right[i] < 0 ? right[i] * 32768 : right[i] * 32767;
+            }
+
+            for (let i = 0; i < leftInt16.length; i += sampleBlockSize) {
+                const leftChunk = leftInt16.subarray(i, i + sampleBlockSize);
+                const rightChunk = channels > 1 ? rightInt16.subarray(i, i + sampleBlockSize) : leftChunk;
+                
+                const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+                if (mp3buf.length > 0) mp3Data.push(mp3buf);
+            }
+
+            const finalBuf = mp3encoder.flush();
+            if (finalBuf.length > 0) mp3Data.push(finalBuf);
+
+            downloadBlob(new Blob(mp3Data, { type: 'audio/mp3' }), 'soundforge_export.mp3');
+        }
+
+        // Кодировщик WAV
+        function exportToWAV(buffer) {
+            const numOfChan = buffer.numberOfChannels;
+            const length = buffer.length * numOfChan * 2 + 44;
+            const bufferArray = new ArrayBuffer(length);
+            const view = new DataView(bufferArray);
+            
+            let channels = [], sampleRate = buffer.sampleRate, offset = 0, pos = 0;
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
+            setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+            setUint32(sampleRate); setUint32(sampleRate * 2 * numOfChan);
+            setUint16(numOfChan * 2); setUint16(16);
+            setUint32(0x61746164); setUint32(length - pos - 4);
+
+            for(let i=0; i<numOfChan; i++) channels.push(buffer.getChannelData(i));
+
+            while(offset < buffer.length) {
+                for(let i=0; i<numOfChan; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0;
+                    view.setInt16(pos, sample, true); pos += 2;
+                }
+                offset++;
+            }
+            downloadBlob(new Blob([bufferArray], { type: 'audio/wav' }), 'soundforge_export.wav');
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
